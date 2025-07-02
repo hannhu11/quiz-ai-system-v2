@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Trắc nghiệm AI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+        
+        const firebaseConfig = {
+        apiKey: "AIzaSyCGAvJ8du5Xcp56ac4zPGLr2jcWPFr_qck",
+        authDomain: "quiz-ai-system.firebaseapp.com",
+        projectId: "quiz-ai-system",
+        storageBucket: "quiz-ai-system.firebasestorage.app",
+        messagingSenderId: "823165200254",
+        appId: "1:823165200254:web:3e67eb0ccd1f46da5ab52f",
+        measurementId: "G-16MBCN7DX6"
+        };
+        
+        window.firebaseApp = initializeApp(firebaseConfig);
+        window.db = getFirestore(window.firebaseApp);
+    </script>
+    
+    <style>
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .pulse-button { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .loading-spinner { 
+            border: 3px solid #f3f3f3; 
+            border-top: 3px solid #3498db; 
+            border-radius: 50%; 
+            width: 30px; 
+            height: 30px; 
+            animation: spin 1s linear infinite; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    
+    <!-- Login Screen -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-indigo-600 mb-2">🧠 Quiz AI System</h1>
+                <p class="text-gray-600">Chọn vai trò của bạn</p>
+            </div>
+            
+            <div class="space-y-4">
+                <button onclick="showAdminLogin()" class="w-full py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold">
+                    ⚙️ Quản trị viên (Admin)
+                </button>
+                <button onclick="showUserLogin()" class="w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold">
+                    👤 Người dùng (User)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Login -->
+    <div id="admin-login" class="hidden min-h-screen flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-green-600 mb-2">⚙️ Đăng nhập Admin</h2>
+                <p class="text-gray-600">Nhập mật khẩu quản trị</p>
+            </div>
+            
+            <form onsubmit="adminLogin(event)" class="space-y-4">
+                <div>
+                    <input type="password" id="admin-password" placeholder="Mật khẩu Admin" required
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                </div>
+                <button type="submit" class="w-full py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold">
+                    Đăng nhập
+                </button>
+                <button type="button" onclick="backToMain()" class="w-full py-2 text-gray-500 hover:text-gray-700">
+                    ← Quay lại
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Login -->
+    <div id="user-login" class="hidden min-h-screen flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold text-blue-600 mb-2">👤 Thông tin người dùng</h2>
+                <p class="text-gray-600">Nhập tên để bắt đầu làm bài</p>
+            </div>
+            
+            <form onsubmit="userLogin(event)" class="space-y-4">
+                <div>
+                    <input type="text" id="user-name" placeholder="Nhập tên của bạn" required
+                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                <button type="submit" class="w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold">
+                    Bắt đầu làm bài
+                </button>
+                <button type="button" onclick="backToMain()" class="w-full py-2 text-gray-500 hover:text-gray-700">
+                    ← Quay lại
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="hidden">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-lg sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <h1 class="text-2xl font-bold text-green-600">⚙️ Admin Dashboard</h1>
+                    <div class="flex space-x-4 items-center">
+                        <span class="text-gray-600">Admin: <span id="admin-name" class="font-semibold"></span></span>
+                        <button onclick="logout()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                            Đăng xuất
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Admin Content -->
+        <div class="container mx-auto px-4 py-8 max-w-6xl">
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="text-3xl mr-4">📚</div>
+                        <div>
+                            <p class="text-gray-600">Tổng câu hỏi</p>
+                            <p id="total-questions-stat" class="text-2xl font-bold text-blue-600">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="text-3xl mr-4">👥</div>
+                        <div>
+                            <p class="text-gray-600">Tổng người dùng</p>
+                            <p id="total-users-stat" class="text-2xl font-bold text-green-600">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="text-3xl mr-4">📝</div>
+                        <div>
+                            <p class="text-gray-600">Lượt làm bài</p>
+                            <p id="total-attempts-stat" class="text-2xl font-bold text-purple-600">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex items-center">
+                        <div class="text-3xl mr-4">📊</div>
+                        <div>
+                            <p class="text-gray-600">Điểm TB</p>
+                            <p id="avg-score-stat" class="text-2xl font-bold text-orange-600">0%</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabs -->
+            <div class="bg-white rounded-xl shadow-2xl">
+                <div class="flex border-b">
+                    <button onclick="showAdminTab('questions')" id="tab-questions" class="px-6 py-3 border-b-2 border-blue-500 text-blue-600 font-semibold">
+                        📚 Quản lý câu hỏi
+                    </button>
+                    <button onclick="showAdminTab('settings')" id="tab-settings" class="px-6 py-3 text-gray-600 hover:text-gray-800">
+                        🔑 Cài đặt API
+                    </button>
+                    <button onclick="showAdminTab('users')" id="tab-users" class="px-6 py-3 text-gray-600 hover:text-gray-800">
+                        👥 Thống kê User
+                    </button>
+                </div>
+
+                <div class="p-6">
+                    <!-- Questions Tab -->
+                    <div id="admin-tab-questions">
+                        <!-- Add Question Form -->
+                        <div class="bg-gray-50 rounded-lg p-6 mb-8">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">➕ Thêm câu hỏi mới</h3>
+                            <form onsubmit="addQuestion(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Hình ảnh câu hỏi:</label>
+                                    <input type="file" id="question-image-input" accept="image/*" required 
+                                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    <div id="image-preview" class="mt-4 text-center hidden">
+                                        <img id="preview-img" src="" alt="Preview" class="max-w-xs max-h-48 mx-auto rounded-lg shadow-md">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nội dung câu hỏi (tùy chọn):</label>
+                                    <textarea id="question-content-input" rows="3" placeholder="Nhập nội dung câu hỏi nếu cần bổ sung..." 
+                                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án A:</label>
+                                        <input type="text" id="answer-a" required placeholder="Nhập đáp án A" 
+                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án B:</label>
+                                        <input type="text" id="answer-b" required placeholder="Nhập đáp án B" 
+                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án C:</label>
+                                        <input type="text" id="answer-c" required placeholder="Nhập đáp án C" 
+                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án D:</label>
+                                        <input type="text" id="answer-d" required placeholder="Nhập đáp án D" 
+                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án đúng:</label>
+                                    <select id="correct-answer" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                        <option value="">Chọn đáp án đúng</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                        <option value="D">D</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="w-full py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold">
+                                    ➕ Thêm câu hỏi
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Questions List -->
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">📋 Danh sách câu hỏi</h3>
+                            <div id="admin-questions-list" class="space-y-4">
+                                <!-- Questions will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Tab -->
+                    <div id="admin-tab-settings" class="hidden">
+                        <div class="bg-blue-50 rounded-lg p-6">
+                            <h3 class="text-xl font-bold text-blue-800 mb-4">🔑 Cấu hình API</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Gemini API Key 1:</label>
+                                    <input type="password" id="admin-api-key-1" placeholder="Nhập API Key 1" 
+                                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Gemini API Key 2 (Backup):</label>
+                                    <input type="password" id="admin-api-key-2" placeholder="Nhập API Key 2" 
+                                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                </div>
+                            </div>
+                            <button onclick="saveAdminApiKeys()" class="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                                💾 Lưu API Keys
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Users Tab -->
+                    <div id="admin-tab-users" class="hidden">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">👥 Thống kê người dùng</h3>
+                        <div id="users-statistics" class="space-y-4">
+                            <!-- User stats will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Dashboard -->
+    <div id="user-dashboard" class="hidden">
+        <!-- Navigation -->
+        <nav class="bg-white shadow-lg sticky top-0 z-50">
+            <div class="max-w-6xl mx-auto px-4">
+                <div class="flex justify-between items-center py-4">
+                    <h1 class="text-2xl font-bold text-blue-600">🧠 Quiz AI System</h1>
+                    <div class="flex space-x-4 items-center">
+                        <span class="text-gray-600">Xin chào: <span id="current-user-name" class="font-semibold text-blue-600"></span></span>
+                        <button onclick="logout()" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                            Đăng xuất
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- User Content -->
+        <div class="container mx-auto px-4 py-8 max-w-4xl">
+            <!-- Quiz Selection -->
+            <div id="quiz-selection" class="bg-white rounded-xl shadow-2xl p-6 md:p-8">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Chọn bộ đề thi</h2>
+                    <p class="text-gray-600">Chọn một bộ đề để bắt đầu làm bài</p>
+                </div>
+                
+                <div id="quiz-sets-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Quiz sets will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Quiz Content -->
+            <div id="user-quiz-content" class="hidden bg-white rounded-xl shadow-2xl p-6 md:p-8">
+                <!-- Quiz Header -->
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Trắc nghiệm AI</h2>
+                    <div class="flex justify-center items-center space-x-4 text-gray-600">
+                        <span>Câu <span id="user-current-question">1</span>/<span id="user-total-questions">0</span></span>
+                        <span>Điểm: <span id="user-score" class="font-bold text-green-600">0</span></span>
+                        <span>Thời gian: <span id="quiz-timer" class="font-bold text-blue-600">00:00</span></span>
+                    </div>
+                </div>
+
+                <!-- Question Content -->
+                <div id="user-question-content" class="fade-in">
+                    <div class="text-center mb-6">
+                        <img id="user-question-image" src="" alt="Câu hỏi" class="max-w-full h-auto rounded-lg shadow-md mx-auto max-h-96 object-contain">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h3 id="user-question-text" class="text-xl font-semibold text-gray-800 text-center mb-6"></h3>
+                    </div>
+
+                    <!-- Answer Options -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <button id="user-option-A" onclick="userSelectAnswer('A')" class="user-answer-btn p-4 text-left border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                            <span class="font-bold text-blue-600">A. </span><span class="answer-text"></span>
+                        </button>
+                        <button id="user-option-B" onclick="userSelectAnswer('B')" class="user-answer-btn p-4 text-left border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                            <span class="font-bold text-blue-600">B. </span><span class="answer-text"></span>
+                        </button>
+                        <button id="user-option-C" onclick="userSelectAnswer('C')" class="user-answer-btn p-4 text-left border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                            <span class="font-bold text-blue-600">C. </span><span class="answer-text"></span>
+                        </button>
+                        <button id="user-option-D" onclick="userSelectAnswer('D')" class="user-answer-btn p-4 text-left border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all">
+                            <span class="font-bold text-blue-600">D. </span><span class="answer-text"></span>
+                        </button>
+                    </div>
+
+                    <!-- AI Explanation -->
+                    <div id="user-ai-explanation" class="hidden bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded">
+                        <div class="flex items-center mb-2">
+                            <span class="text-red-600 font-bold">🤖 AI Giải thích:</span>
+                            <div id="user-loading-ai" class="loading-spinner ml-4 hidden"></div>
+                        </div>
+                        <p id="user-explanation-text" class="text-gray-700"></p>
+                    </div>
+
+                    <!-- Next Button -->
+                    <div class="text-center">
+                        <button id="user-next-btn" onclick="userNextQuestion()" class="hidden px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors pulse-button">
+                            Câu tiếp theo →
+                        </button>
+                        <button onclick="backToQuizSelection()" class="ml-4 px-6 py-2 text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg">
+                            ← Chọn lại đề
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quiz Complete -->
+                <div id="user-quiz-complete" class="hidden text-center py-12">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h3 class="text-3xl font-bold text-green-600 mb-4">Hoàn thành!</h3>
+                    <div class="text-xl text-gray-700 mb-6">
+                        <p>Điểm của bạn: <span id="user-final-score" class="font-bold text-green-600"></span></p>
+                        <p>Thời gian hoàn thành: <span id="user-final-time" class="font-bold text-blue-600"></span></p>
+                    </div>
+                    <div class="space-x-4">
+                        <button onclick="backToQuizSelection()" class="px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            Chọn đề khác
+                        </button>
+                        <button onclick="userRestartQuiz()" class="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                            Làm lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import Firebase functions
+        import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js';
+        
+        // Global variables
+        let currentUser = null;
+        let currentRole = null;
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let userScore = 0;
+        let userSelectedAnswer = null;
+        let quizStartTime = null;
+        let quizTimer = null;
+        let apiKeys = { key1: '', key2: '' };
+        
+        // Constants
+        const ADMIN_PASSWORD = 'admin123'; // Thay đổi mật khẩu này
+        
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('App initialized');
+            setupImagePreview();
+        });
+        
+        // Authentication functions
+        window.showAdminLogin = function() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('admin-login').classList.remove('hidden');
+        };
+        
+        window.showUserLogin = function() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('user-login').classList.remove('hidden');
+        };
+        
+        window.backToMain = function() {
+            document.getElementById('admin-login').classList.add('hidden');
+            document.getElementById('user-login').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        };
+        
+        window.adminLogin = function(event) {
+            event.preventDefault();
+            const password = document.getElementById('admin-password').value;
+            
+            if (password === ADMIN_PASSWORD) {
+                currentUser = 'Admin';
+                currentRole = 'admin';
+                document.getElementById('admin-name').textContent = currentUser;
+                
+                document.getElementById('admin-login').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                
+                loadAdminData();
+            } else {
+                alert('Mật khẩu không đúng!');
+            }
+        };
+        
+        window.userLogin = function(event) {
+            event.preventDefault();
+            const userName = document.getElementById('user-name').value.trim();
+            
+            if (userName) {
+                currentUser = userName;
+                currentRole = 'user';
+                document.getElementById('current-user-name').textContent = currentUser;
+                
+                document.getElementById('user-login').classList.add('hidden');
+                document.getElementById('user-dashboard').classList.remove('hidden');
+                
+                loadUserData();
+            } else {
+                alert('Vui lòng nhập tên!');
+            }
+        };
+        
+        window.logout = function() {
+            currentUser = null;
+            currentRole = null;
+            
+            // Hide all dashboards
+            document.getElementById('admin-dashboard').classList.add('hidden');
+            document.getElementById('user-dashboard').classList.add('hidden');
+            
+            // Show login screen
+            document.getElementById('login-screen').classList.remove('hidden');
+            
+            // Clear forms
+            document.getElementById('admin-password').value = '';
+            document.getElementById('user-name').value = '';
+        };
+        
+        // Admin Tab Management
+        window.showAdminTab = function(tabName) {
+            // Hide all tabs
+            document.getElementById('admin-tab-questions').classList.add('hidden');
+            document.getElementById('admin-tab-settings').classList.add('hidden');
+            document.getElementById('admin-tab-users').classList.add('hidden');
+            
+            // Remove active class from all tab buttons
+            document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+                tab.className = 'px-6 py-3 text-gray-600 hover:text-gray-800';
+            });
+            
+            // Show selected tab
+            document.getElementById(`admin-tab-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).className = 'px-6 py-3 border-b-2 border-blue-500 text-blue-600 font-semibold';
+        };
+
+        // Question Management
+        window.addQuestion = async function(event) {
+            event.preventDefault();
+            
+            const imageFile = document.getElementById('question-image-input').files[0];
+            if (!imageFile) {
+                alert('Vui lòng chọn hình ảnh');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const question = {
+                    image: e.target.result,
+                    content: document.getElementById('question-content-input').value,
+                    answers: {
+                        A: document.getElementById('answer-a').value,
+                        B: document.getElementById('answer-b').value,
+                        C: document.getElementById('answer-c').value,
+                        D: document.getElementById('answer-d').value
+                    },
+                    correctAnswer: document.getElementById('correct-answer').value,
+                    createdAt: new Date(),
+                    createdBy: currentUser
+                };
+
+                try {
+                    // Save to Firebase
+                    await addDoc(collection(window.db, 'questions'), question);
+                    
+                    // Refresh question list
+                    await loadAdminQuestions();
+                    await loadAdminStats();
+                    
+                    // Reset form
+                    document.querySelector('#admin-tab-questions form').reset();
+                    document.getElementById('image-preview').classList.add('hidden');
+                    
+                    alert('Thêm câu hỏi thành công!');
+                } catch (error) {
+                    console.error('Error adding question:', error);
+                    // Fallback to localStorage only
+                    questions.push({ id: Date.now().toString(), ...question });
+                    localStorage.setItem('quiz-questions', JSON.stringify(questions));
+                    displayAdminQuestions();
+                    loadAdminStats();
+                    
+                    // Reset form
+                    document.querySelector('#admin-tab-questions form').reset();
+                    document.getElementById('image-preview').classList.add('hidden');
+                    
+                    alert('Đã lưu câu hỏi (offline mode)');
+                }
+            };
+            reader.readAsDataURL(imageFile);
+        };
+
+        window.deleteAdminQuestion = async function(questionId) {
+            if (!confirm('Bạn có chắc muốn xóa câu hỏi này?')) return;
+            
+            try {
+                // Delete from Firebase
+                await deleteDoc(doc(window.db, 'questions', questionId));
+                
+                // Refresh displays
+                await loadAdminQuestions();
+                await loadAdminStats();
+                
+                alert('Đã xóa câu hỏi!');
+            } catch (error) {
+                console.error('Error deleting question:', error);
+                // Fallback to localStorage
+                questions = questions.filter(q => q.id !== questionId);
+                localStorage.setItem('quiz-questions', JSON.stringify(questions));
+                displayAdminQuestions();
+                loadAdminStats();
+                alert('Đã xóa câu hỏi (offline mode)');
+            }
+        };
+
+        // API Management
+        window.saveAdminApiKeys = async function() {
+            apiKeys.key1 = document.getElementById('admin-api-key-1').value;
+            apiKeys.key2 = document.getElementById('admin-api-key-2').value;
+            
+            try {
+                // Save to Firebase
+                await addDoc(collection(window.db, 'settings'), {
+                    type: 'apiKeys',
+                    keys: apiKeys,
+                    updatedAt: new Date(),
+                    updatedBy: currentUser
+                });
+                
+                localStorage.setItem('gemini-api-keys', JSON.stringify(apiKeys));
+                alert('Lưu API keys thành công!');
+            } catch (error) {
+                console.error('Error saving API keys:', error);
+                localStorage.setItem('gemini-api-keys', JSON.stringify(apiKeys));
+                alert('Đã lưu API keys (offline mode)');
+            }
+        };
+        
+        // Admin functions
+        function loadAdminData() {
+            loadAdminQuestions();
+            loadAdminApiKeys();
+            loadAdminStats();
+            loadUserStatistics();
+        }
+        
+        async function loadAdminQuestions() {
+            try {
+                const questionsSnapshot = await getDocs(collection(window.db, 'questions'));
+                questions = [];
+                questionsSnapshot.forEach((doc) => {
+                    questions.push({ id: doc.id, ...doc.data() });
+                });
+                displayAdminQuestions();
+            } catch (error) {
+                console.error('Error loading questions:', error);
+                // Fallback to localStorage if Firebase fails
+                const saved = localStorage.getItem('quiz-questions');
+                if (saved) {
+                    questions = JSON.parse(saved);
+                    displayAdminQuestions();
+                }
+            }
+        }
+        
+        function displayAdminQuestions() {
+            const questionsList = document.getElementById('admin-questions-list');
+            
+            if (questions.length === 0) {
+                questionsList.innerHTML = '<p class="text-gray-500 text-center py-8">Chưa có câu hỏi nào</p>';
+                return;
+            }
+
+            questionsList.innerHTML = questions.map((question, index) => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-4 mb-3">
+                                <img src="${question.image}" alt="Question ${index + 1}" class="w-20 h-20 object-cover rounded-lg">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">Câu ${index + 1}</h4>
+                                    <p class="text-sm text-gray-600">${question.content || 'Câu hỏi từ hình ảnh'}</p>
+                                    <p class="text-sm text-green-600 font-medium">Đáp án: ${question.correctAnswer}</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-sm">
+                                <div>A. ${question.answers.A}</div>
+                                <div>B. ${question.answers.B}</div>
+                                <div>C. ${question.answers.C}</div>
+                                <div>D. ${question.answers.D}</div>
+                            </div>
+                        </div>
+                        <button onclick="deleteAdminQuestion('${question.id}')" 
+                                class="ml-4 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">
+                            🗑️ Xóa
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function loadAdminStats() {
+            // Load statistics
+            document.getElementById('total-questions-stat').textContent = questions.length;
+            
+            try {
+                const usersSnapshot = await getDocs(collection(window.db, 'userSessions'));
+                const users = new Set();
+                let totalAttempts = 0;
+                let totalScore = 0;
+                
+                usersSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    users.add(data.userName);
+                    totalAttempts++;
+                    totalScore += data.score || 0;
+                });
+                
+                document.getElementById('total-users-stat').textContent = users.size;
+                document.getElementById('total-attempts-stat').textContent = totalAttempts;
+                document.getElementById('avg-score-stat').textContent = totalAttempts > 0 ? 
+                    Math.round((totalScore / totalAttempts / questions.length) * 100) + '%' : '0%';
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function loadAdminApiKeys() {
+            try {
+                const settingsSnapshot = await getDocs(collection(window.db, 'settings'));
+                settingsSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.type === 'apiKeys') {
+                        apiKeys = data.keys;
+                        document.getElementById('admin-api-key-1').value = apiKeys.key1 || '';
+                        document.getElementById('admin-api-key-2').value = apiKeys.key2 || '';
+                    }
+                });
+            } catch (error) {
+                console.error('Error loading API keys:', error);
+                // Fallback to localStorage
+                const saved = localStorage.getItem('gemini-api-keys');
+                if (saved) {
+                    apiKeys = JSON.parse(saved);
+                    document.getElementById('admin-api-key-1').value = apiKeys.key1 || '';
+                    document.getElementById('admin-api-key-2').value = apiKeys.key2 || '';
+                }
+            }
+        }
+
+        async function loadUserStatistics() {
+            try {
+                const usersSnapshot = await getDocs(collection(window.db, 'userSessions'));
+                const userStats = {};
+                
+                usersSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    const userName = data.userName;
+                    
+                    if (!userStats[userName]) {
+                        userStats[userName] = {
+                            name: userName,
+                            attempts: 0,
+                            totalScore: 0,
+                            bestScore: 0,
+                            totalTime: 0,
+                            lastAttempt: null
+                        };
+                    }
+                    
+                    userStats[userName].attempts++;
+                    userStats[userName].totalScore += data.score || 0;
+                    userStats[userName].totalTime += data.completionTime || 0;
+                    userStats[userName].bestScore = Math.max(userStats[userName].bestScore, data.score || 0);
+                    
+                    if (data.completedAt) {
+                        userStats[userName].lastAttempt = data.completedAt.toDate ? 
+                            data.completedAt.toDate().toLocaleString() : 
+                            new Date(data.completedAt).toLocaleString();
+                    }
+                });
+                
+                displayUserStatistics(Object.values(userStats));
+            } catch (error) {
+                console.error('Error loading user statistics:', error);
+            }
+        }
+
+        function displayUserStatistics(userStats) {
+            const container = document.getElementById('users-statistics');
+            
+            if (userStats.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">Chưa có người dùng nào làm bài</p>';
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lần làm</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Điểm cao nhất</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Thời gian TB</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lần cuối</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            ${userStats.map(stat => `
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${stat.name}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stat.attempts}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600 font-semibold">${stat.bestScore}/${questions.length}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${formatTime(Math.round(stat.totalTime/stat.attempts))}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${stat.lastAttempt || 'Chưa có'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // User Functions
+        function loadUserData() {
+            loadQuizSets();
+        }
+
+        async function loadQuizSets() {
+            try {
+                const questionsSnapshot = await getDocs(collection(window.db, 'questions'));
+                questions = [];
+                questionsSnapshot.forEach((doc) => {
+                    questions.push({ id: doc.id, ...doc.data() });
+                });
+                
+                displayQuizSets();
+            } catch (error) {
+                console.error('Error loading quiz sets:', error);
+                // Fallback to localStorage
+                const saved = localStorage.getItem('quiz-questions');
+                if (saved) {
+                    questions = JSON.parse(saved);
+                    displayQuizSets();
+                }
+            }
+        }
+
+        function displayQuizSets() {
+            const container = document.getElementById('quiz-sets-list');
+            
+            if (questions.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-2 text-center py-12">
+                        <div class="text-6xl mb-4">📚</div>
+                        <h3 class="text-2xl font-bold text-gray-600 mb-4">Chưa có đề thi nào</h3>
+                        <p class="text-gray-500">Vui lòng liên hệ admin để thêm đề thi</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="bg-white border-2 border-gray-200 rounded-lg p-6 hover:border-blue-500 transition-colors cursor-pointer" onclick="startUserQuiz()">
+                    <div class="text-center">
+                        <div class="text-4xl mb-4">📝</div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-2">Bộ đề chính</h3>
+                        <p class="text-gray-600 mb-4">Tổng số câu: ${questions.length}</p>
+                        <button class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
+                            Bắt đầu làm bài
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        window.startUserQuiz = function() {
+            document.getElementById('quiz-selection').classList.add('hidden');
+            document.getElementById('user-quiz-content').classList.remove('hidden');
+            
+            currentQuestionIndex = 0;
+            userScore = 0;
+            quizStartTime = Date.now();
+            
+            startQuizTimer();
+            updateUserQuizDisplay();
+        };
+
+        window.backToQuizSelection = function() {
+            document.getElementById('user-quiz-content').classList.add('hidden');
+            document.getElementById('quiz-selection').classList.remove('hidden');
+            
+            if (quizTimer) {
+                clearInterval(quizTimer);
+                quizTimer = null;
+            }
+        };
+
+        function startQuizTimer() {
+            quizTimer = setInterval(() => {
+                const elapsed = Date.now() - quizStartTime;
+                const seconds = Math.floor(elapsed / 1000);
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                
+                document.getElementById('quiz-timer').textContent = 
+                    `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function updateUserQuizDisplay() {
+            if (currentQuestionIndex >= questions.length) {
+                showUserQuizComplete();
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            
+            document.getElementById('user-current-question').textContent = currentQuestionIndex + 1;
+            document.getElementById('user-total-questions').textContent = questions.length;
+            document.getElementById('user-score').textContent = userScore;
+
+            document.getElementById('user-question-image').src = question.image;
+            document.getElementById('user-question-text').textContent = question.content || '';
+
+            document.getElementById('user-option-A').querySelector('.answer-text').textContent = question.answers.A;
+            document.getElementById('user-option-B').querySelector('.answer-text').textContent = question.answers.B;
+            document.getElementById('user-option-C').querySelector('.answer-text').textContent = question.answers.C;
+            document.getElementById('user-option-D').querySelector('.answer-text').textContent = question.answers.D;
+
+            resetUserAnswerButtons();
+            document.getElementById('user-ai-explanation').classList.add('hidden');
+            document.getElementById('user-next-btn').classList.add('hidden');
+            userSelectedAnswer = null;
+        }
+
+        window.userSelectAnswer = function(answer) {
+            if (userSelectedAnswer) return;
+            
+            userSelectedAnswer = answer;
+            const question = questions[currentQuestionIndex];
+            const isCorrect = answer === question.correctAnswer;
+
+            document.querySelectorAll('.user-answer-btn').forEach(btn => {
+                btn.classList.add('pointer-events-none');
+                if (btn.id === `user-option-${answer}`) {
+                    btn.classList.add(isCorrect ? 'border-green-500' : 'border-red-500');
+                    btn.classList.add(isCorrect ? 'bg-green-100' : 'bg-red-100');
+                }
+                if (btn.id === `user-option-${question.correctAnswer}`) {
+                    btn.classList.add('border-green-500', 'bg-green-100');
+                }
+            });
+
+            if (isCorrect) {
+                userScore++;
+                document.getElementById('user-score').textContent = userScore;
+                setTimeout(() => {
+                    document.getElementById('user-next-btn').classList.remove('hidden');
+                }, 500);
+            } else {
+                getUserAIExplanation(question, answer);
+            }
+        };
+
+        async function getUserAIExplanation(question, selectedAnswer) {
+            const explanationDiv = document.getElementById('user-ai-explanation');
+            const loadingSpinner = document.getElementById('user-loading-ai');
+            const explanationText = document.getElementById('user-explanation-text');
+
+            explanationDiv.classList.remove('hidden');
+            loadingSpinner.classList.remove('hidden');
+            explanationText.textContent = 'Đang phân tích câu trả lời...';
+
+            try {
+                const explanation = await callGeminiAPI(question, selectedAnswer);
+                explanationText.textContent = explanation;
+            } catch (error) {
+                explanationText.textContent = `Không thể lấy giải thích từ AI. Đáp án đúng là ${question.correctAnswer}: ${question.answers[question.correctAnswer]}`;
+            } finally {
+                loadingSpinner.classList.add('hidden');
+                setTimeout(() => {
+                    document.getElementById('user-next-btn').classList.remove('hidden');
+                }, 1000);
+            }
+        }
+
+        async function callGeminiAPI(question, selectedAnswer) {
+            const prompt = `Tôi đang làm bài trắc nghiệm. Đây là câu hỏi có hình ảnh. Tôi đã chọn đáp án ${selectedAnswer}, nhưng có vẻ sai. 
+Hãy giải thích tại sao đáp án đó sai và đáp án đúng là gì dựa trên nội dung câu hỏi trong hình. 
+Hãy rõ ràng và dễ hiểu.
+
+Câu hỏi: ${question.content || 'Xem trong hình'}
+Các đáp án:
+A. ${question.answers.A}
+B. ${question.answers.B}
+C. ${question.answers.C}  
+D. ${question.answers.D}
+
+Đáp án đúng: ${question.correctAnswer}
+Đáp án tôi chọn: ${selectedAnswer}`;
+
+            // Try API key 1 first, then API key 2
+            const keys = [apiKeys.key1, apiKeys.key2].filter(key => key);
+            
+            for (const apiKey of keys) {
+                try {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [
+                                    { text: prompt },
+                                    {
+                                        inline_data: {
+                                            mime_type: getImageMimeType(question.image),
+                                            data: question.image.split(',')[1]
+                                        }
+                                    }
+                                ]
+                            }]
+                        })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.candidates[0].content.parts[0].text;
+                    }
+                } catch (error) {
+                    console.error('API call failed:', error);
+                }
+            }
+            
+            throw new Error('Both API keys failed');
+        }
+
+        function getImageMimeType(dataUrl) {
+            const matches = dataUrl.match(/^data:([^;]+);base64,/);
+            return matches ? matches[1] : 'image/jpeg';
+        }
+
+        window.userNextQuestion = function() {
+            currentQuestionIndex++;
+            updateUserQuizDisplay();
+        };
+
+        async function showUserQuizComplete() {
+            if (quizTimer) {
+                clearInterval(quizTimer);
+                quizTimer = null;
+            }
+            
+            const completionTime = Math.floor((Date.now() - quizStartTime) / 1000);
+            
+            document.getElementById('user-question-content').classList.add('hidden');
+            document.getElementById('user-quiz-complete').classList.remove('hidden');
+            document.getElementById('user-final-score').textContent = `${userScore}/${questions.length}`;
+            document.getElementById('user-final-time').textContent = formatTime(completionTime);
+            
+            // Save session to Firebase
+            try {
+                await addDoc(collection(window.db, 'userSessions'), {
+                    userName: currentUser,
+                    score: userScore,
+                    totalQuestions: questions.length,
+                    completionTime: completionTime,
+                    completedAt: new Date(),
+                    answers: []
+                });
+            } catch (error) {
+                console.error('Error saving session:', error);
+            }
+        }
+
+        window.userRestartQuiz = function() {
+            currentQuestionIndex = 0;
+            userScore = 0;
+            quizStartTime = Date.now();
+            
+            document.getElementById('user-quiz-complete').classList.add('hidden');
+            document.getElementById('user-question-content').classList.remove('hidden');
+            
+            startQuizTimer();
+            updateUserQuizDisplay();
+        };
+
+        function resetUserAnswerButtons() {
+            document.querySelectorAll('.user-answer-btn').forEach(btn => {
+                btn.className = 'user-answer-btn p-4 text-left border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all';
+            });
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Image preview setup
+        function setupImagePreview() {
+            const imageInput = document.getElementById('question-image-input');
+            const imagePreview = document.getElementById('image-preview');
+            const previewImg = document.getElementById('preview-img');
+
+            if (imageInput) {
+                imageInput.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            previewImg.src = e.target.result;
+                            imagePreview.classList.remove('hidden');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        }
+        
+    </script>
+</body>
+</html> 
