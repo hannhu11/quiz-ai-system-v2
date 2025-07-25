@@ -706,6 +706,37 @@
         let questionSets = [];
         let currentZoom = 1;
 
+        // Đặt ở ngoài cùng, trước mọi hàm và logic liên quan auto-quiz
+        var autoQuizImages = [];
+        var autoQuizPreviewDiv = document.getElementById('auto-quiz-preview');
+        var autoQuizStartBtn = document.getElementById('auto-quiz-start-btn');
+
+        function handleFiles(files) {
+            autoQuizImages = [];
+            autoQuizPreviewDiv.innerHTML = '';
+            Array.from(files).forEach(function(file) {
+                if (!file.type.startsWith('image/')) return;
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    autoQuizImages.push({ name: file.name, data: e.target.result });
+                    var img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = file.name;
+                    img.className = 'w-24 h-24 object-cover rounded shadow border border-gray-200';
+                    autoQuizPreviewDiv.appendChild(img);
+                    if (autoQuizImages.length > 0) {
+                        autoQuizStartBtn.disabled = false;
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+            setTimeout(function() {
+                if (autoQuizImages.length === 0) {
+                    autoQuizStartBtn.disabled = true;
+                }
+            }, 500);
+        }
+
         // Thêm biến kiểm soát đã gán sự kiện dropzone auto-quiz chưa
         let autoQuizDropzoneEventsBound = false;
 
@@ -726,15 +757,15 @@
                 const previewDiv = document.getElementById('auto-quiz-preview');
                 const startBtn = document.getElementById('auto-quiz-start-btn');
                 if (dropzone && fileInput && previewDiv && startBtn) {
-                    dropzone.addEventListener('click', () => fileInput.click());
-                    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('bg-blue-100'); });
-                    dropzone.addEventListener('dragleave', e => { e.preventDefault(); dropzone.classList.remove('bg-blue-100'); });
-                    dropzone.addEventListener('drop', e => {
+                    dropzone.addEventListener('click', function() { fileInput.click(); });
+                    dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('bg-blue-100'); });
+                    dropzone.addEventListener('dragleave', function(e) { e.preventDefault(); dropzone.classList.remove('bg-blue-100'); });
+                    dropzone.addEventListener('drop', function(e) {
                         e.preventDefault();
                         dropzone.classList.remove('bg-blue-100');
                         handleFiles(e.dataTransfer.files);
                     });
-                    fileInput.addEventListener('change', e => handleFiles(e.target.files));
+                    fileInput.addEventListener('change', function(e) { handleFiles(e.target.files); });
                     autoQuizDropzoneEventsBound = true;
                 }
             }
@@ -2287,46 +2318,18 @@ D. ${question.answers.D}
         const fileInput = document.getElementById('auto-quiz-image-input');
         const previewDiv = document.getElementById('auto-quiz-preview');
         const startBtn = document.getElementById('auto-quiz-start-btn');
-        let autoQuizImages = [];
+        var autoQuizImages = [];
 
         if (dropzone && fileInput && previewDiv && startBtn) {
-            dropzone.addEventListener('click', () => fileInput.click());
-            dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('bg-blue-100'); });
-            dropzone.addEventListener('dragleave', e => { e.preventDefault(); dropzone.classList.remove('bg-blue-100'); });
-            dropzone.addEventListener('drop', e => {
+            dropzone.addEventListener('click', function() { fileInput.click(); });
+            dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('bg-blue-100'); });
+            dropzone.addEventListener('dragleave', function(e) { e.preventDefault(); dropzone.classList.remove('bg-blue-100'); });
+            dropzone.addEventListener('drop', function(e) {
                 e.preventDefault();
                 dropzone.classList.remove('bg-blue-100');
                 handleFiles(e.dataTransfer.files);
             });
-            fileInput.addEventListener('change', e => handleFiles(e.target.files));
-        }
-
-        function handleFiles(files) {
-            autoQuizImages = [];
-            previewDiv.innerHTML = '';
-            Array.from(files).forEach(file => {
-                if (!file.type.startsWith('image/')) return;
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    autoQuizImages.push({ name: file.name, data: e.target.result });
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.alt = file.name;
-                    img.className = 'w-24 h-24 object-cover rounded shadow border border-gray-200';
-                    previewDiv.appendChild(img);
-                    // Enable nút nếu có ít nhất 1 ảnh
-                    if (autoQuizImages.length > 0) {
-                        startBtn.disabled = false;
-                    }
-                };
-                reader.readAsDataURL(file);
-            });
-            // Nếu không có ảnh nào, disable nút
-            setTimeout(() => {
-                if (autoQuizImages.length === 0) {
-                    startBtn.disabled = true;
-                }
-            }, 500);
+            fileInput.addEventListener('change', function(e) { handleFiles(e.target.files); });
         }
 
         // Thêm biến lưu API key Google Cloud Vision (hardcode hoặc cho phép nhập ở phần cài đặt nếu muốn)
