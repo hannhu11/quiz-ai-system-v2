@@ -170,7 +170,7 @@
 
             <!-- Tabs -->
             <div class="bg-white rounded-xl shadow-2xl">
-                <div class="flex border-b">
+                <div class="flex border-b mb-6">
                     <button onclick="showAdminTab('subjects')" id="tab-subjects" class="px-6 py-3 border-b-2 border-blue-500 text-blue-600 font-semibold">
                         📖 Quản lý Môn học
                     </button>
@@ -182,6 +182,9 @@
                     </button>
                     <button onclick="showAdminTab('users')" id="tab-users" class="px-6 py-3 text-gray-600 hover:text-gray-800">
                         👥 Thống kê User
+                    </button>
+                    <button onclick="showAdminTab('auto-quiz')" id="tab-auto-quiz" class="px-6 py-3 text-gray-600 hover:text-gray-800">
+                        🤖 Tạo bộ đề tự động từ ảnh
                     </button>
                 </div>
 
@@ -354,6 +357,21 @@
                         <div id="users-statistics" class="space-y-4">
                             <!-- User stats will be loaded here -->
                         </div>
+                    </div>
+
+                    <!-- Auto Quiz Tab -->
+                    <div id="admin-tab-auto-quiz" class="hidden">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🤖 Tạo bộ đề tự động từ ảnh</h3>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Chọn nhiều ảnh đề thi (có thể kéo thả hoặc chọn nhiều file):</label>
+                            <div id="auto-quiz-dropzone" class="border-2 border-dashed border-blue-400 rounded-lg p-6 text-center bg-blue-50 cursor-pointer hover:bg-blue-100 transition-all">
+                                <span class="text-blue-600 font-semibold">Kéo & thả ảnh vào đây hoặc click để chọn file</span>
+                                <input type="file" id="auto-quiz-image-input" accept="image/*" multiple class="hidden">
+                            </div>
+                        </div>
+                        <div id="auto-quiz-preview" class="flex flex-wrap gap-4 mb-4"></div>
+                        <button id="auto-quiz-start-btn" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors mt-2" disabled>Bắt đầu OCR & sinh câu hỏi</button>
+                        <div id="auto-quiz-ocr-result" class="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-800 hidden"></div>
                     </div>
                 </div>
             </div>
@@ -695,6 +713,7 @@
             document.getElementById('admin-tab-questions').classList.add('hidden');
             document.getElementById('admin-tab-settings').classList.add('hidden');
             document.getElementById('admin-tab-users').classList.add('hidden');
+            document.getElementById('admin-tab-auto-quiz').classList.add('hidden');
             
             // Remove active class from all tab buttons
             document.querySelectorAll('[id^="tab-"]').forEach(tab => {
@@ -710,6 +729,13 @@
                 loadSubjects();
             } else if (tabName === 'questions') {
                 loadSubjectsDropdown();
+            } else if (tabName === 'settings') {
+                loadAdminApiKeys();
+            } else if (tabName === 'users') {
+                loadUserStatistics();
+            } else if (tabName === 'auto-quiz') {
+                // Load auto quiz data
+                loadAutoQuizData();
             }
         };
 
@@ -2156,15 +2182,16 @@ D. ${question.answers.D}
             // Find subject and question set names
             const subject = subjects.find(s => s.id === question.subjectId);
             const questionSet = questionSets.find(qs => qs.id === question.questionSetId);
-            
+            // Escape dấu nháy đơn trong src để tránh lỗi khi truyền vào onclick
+            const safeImgSrc = question.image.replace(/'/g, "&#39;");
             return `
                 <div class="border border-gray-200 rounded-lg p-4">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <div class="flex items-center space-x-4 mb-3">
                                 <div class="relative">
-                                    <img src="${question.image}" alt="Question ${index + 1}" class="w-20 h-20 object-cover rounded-lg cursor-pointer" onclick="openAdminImageModal('${question.image}')">
-                                    <button onclick="openAdminImageModal('${question.image}')" class="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">🔍</button>
+                                    <img src="${question.image}" alt="Question ${index + 1}" class="w-20 h-20 object-cover rounded-lg cursor-pointer" onclick="openAdminImageModal('${safeImgSrc}')">
+                                    <button type="button" onclick="openAdminImageModal('${safeImgSrc}')" class="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">🔍</button>
                                 </div>
                                 <div>
                                     <h4 class="font-semibold text-gray-800">Câu ${index + 1}</h4>
@@ -2192,6 +2219,11 @@ D. ${question.answers.D}
         // Thêm modal phóng to ảnh cho admin (dùng lại modal cũ nhưng id khác)
         let adminCurrentZoom = 1, adminImgPosX = 0, adminImgPosY = 0, adminIsDragging = false, adminDragStartX = 0, adminDragStartY = 0;
         window.openAdminImageModal = function(imgSrc) {
+            console.log('[ADMIN] Click phóng to ảnh:', imgSrc);
+            if (!imgSrc || imgSrc === 'null' || imgSrc === 'undefined') {
+                alert('Ảnh không hợp lệ hoặc chưa có ảnh!');
+                return;
+            }
             const modal = document.getElementById('admin-image-modal');
             const modalImg = document.getElementById('admin-modal-image');
             modalImg.src = imgSrc;
@@ -2234,6 +2266,98 @@ D. ${question.answers.D}
         window.adminZoomIn = function() { adminCurrentZoom = Math.min(adminCurrentZoom + 0.3, 5); updateAdminImageTransform(); };
         window.adminZoomOut = function() { adminCurrentZoom = Math.max(adminCurrentZoom - 0.3, 0.5); updateAdminImageTransform(); };
         window.adminResetZoom = function() { adminCurrentZoom = 1; adminImgPosX = 0; adminImgPosY = 0; updateAdminImageTransform(); };
+
+        // Auto Quiz - Upload nhiều ảnh, preview
+        const dropzone = document.getElementById('auto-quiz-dropzone');
+        const fileInput = document.getElementById('auto-quiz-image-input');
+        const previewDiv = document.getElementById('auto-quiz-preview');
+        const startBtn = document.getElementById('auto-quiz-start-btn');
+        let autoQuizImages = [];
+
+        if (dropzone && fileInput && previewDiv && startBtn) {
+            dropzone.addEventListener('click', () => fileInput.click());
+            dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('bg-blue-100'); });
+            dropzone.addEventListener('dragleave', e => { e.preventDefault(); dropzone.classList.remove('bg-blue-100'); });
+            dropzone.addEventListener('drop', e => {
+                e.preventDefault();
+                dropzone.classList.remove('bg-blue-100');
+                handleFiles(e.dataTransfer.files);
+            });
+            fileInput.addEventListener('change', e => handleFiles(e.target.files));
+        }
+
+        function handleFiles(files) {
+            autoQuizImages = [];
+            previewDiv.innerHTML = '';
+            Array.from(files).forEach(file => {
+                if (!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    autoQuizImages.push({ name: file.name, data: e.target.result });
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.alt = file.name;
+                    img.className = 'w-24 h-24 object-cover rounded shadow border border-gray-200';
+                    previewDiv.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+            setTimeout(() => { startBtn.disabled = autoQuizImages.length === 0; }, 300);
+        }
+
+        // Thêm biến lưu API key Google Cloud Vision (hardcode hoặc cho phép nhập ở phần cài đặt nếu muốn)
+        const GOOGLE_VISION_API_KEY = 'AIzaSyAg1ENLEMRu6Z1wKuCbo5ovAeR86a6BoLU';
+
+        // Thêm div preview text OCR sau nút startBtn
+        // Trong phần admin-tab-auto-quiz:
+        // <div id="auto-quiz-ocr-result" class="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-800 hidden"></div>
+
+        // Thêm vào sau nút startBtn trong HTML:
+        // <div id="auto-quiz-ocr-result" class="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-800 hidden"></div>
+
+        // JS xử lý OCR khi nhấn nút
+        if (startBtn) {
+            startBtn.addEventListener('click', async function() {
+                if (autoQuizImages.length === 0) return;
+                startBtn.disabled = true;
+                startBtn.textContent = 'Đang nhận diện OCR...';
+                document.getElementById('auto-quiz-ocr-result').classList.add('hidden');
+                let allText = '';
+                let ocrResults = [];
+                for (let i = 0; i < autoQuizImages.length; i++) {
+                    const img = autoQuizImages[i];
+                    // Gọi Google Cloud Vision API
+                    try {
+                        const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                requests: [{
+                                    image: { content: img.data.split(',')[1] },
+                                    features: [{ type: 'TEXT_DETECTION' }]
+                                }]
+                            })
+                        });
+                        const data = await res.json();
+                        const text = data.responses?.[0]?.fullTextAnnotation?.text || '';
+                        ocrResults.push({ name: img.name, text });
+                        allText += `--- Ảnh: ${img.name} ---\n${text}\n\n`;
+                    } catch (e) {
+                        ocrResults.push({ name: img.name, text: '[Lỗi OCR]' });
+                        allText += `--- Ảnh: ${img.name} ---\n[Lỗi OCR]\n\n`;
+                    }
+                }
+                // Hiển thị preview text OCR
+                const ocrDiv = document.getElementById('auto-quiz-ocr-result');
+                ocrDiv.textContent = allText.trim();
+                ocrDiv.classList.remove('hidden');
+                startBtn.disabled = false;
+                startBtn.textContent = 'Bắt đầu OCR & sinh câu hỏi';
+                // Lưu lại text OCR cho bước tiếp theo
+                window.autoQuizOcrText = allText.trim();
+                window.autoQuizOcrResults = ocrResults;
+            });
+        }
 
     </script>
 </body>
