@@ -475,21 +475,23 @@
 
                 <!-- Quiz Complete -->
                 <div id="user-quiz-complete" class="hidden text-center py-12">
-                    <div class="text-6xl mb-4">🎉</div>
+                    <div class="text-6xl mb-4">
+                        <!-- Bỏ icon nếu có -->
+                    </div>
                     <h3 class="text-3xl font-bold text-green-600 mb-4">Hoàn thành!</h3>
                     <div class="text-xl text-gray-700 mb-6">
                         <p>Điểm của bạn: <span id="user-final-score" class="font-bold text-green-600"></span></p>
                         <p>Thời gian hoàn thành: <span id="user-final-time" class="font-bold text-blue-600"></span></p>
                     </div>
                     <div class="flex flex-wrap justify-center gap-3">
-                        <button onclick="reviewQuiz()" class="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors">
-                            📋 Xem lại bài
+                        <button onclick="reviewQuiz()" class="px-8 py-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-lg font-semibold shadow-lg border-2 border-orange-600">
+                            Xem lại bài làm
                         </button>
-                        <button onclick="backToQuizSelection()" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-                            📚 Chọn đề khác
+                        <button onclick="backToQuizSelection()" class="px-8 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-lg font-semibold shadow-lg border-2 border-blue-600">
+                            Chọn đề khác
                         </button>
-                        <button onclick="userRestartQuiz()" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
-                            🔄 Làm lại
+                        <button onclick="userRestartQuiz()" class="px-8 py-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-lg font-semibold shadow-lg border-2 border-green-600">
+                            Làm lại
                         </button>
                     </div>
                 </div>
@@ -1563,31 +1565,45 @@
                 }
             });
 
-            if (isCorrect) {
-                userScore++;
-                document.getElementById('user-score').textContent = userScore;
-                setTimeout(() => {
-                    document.getElementById('user-next-btn').classList.remove('hidden');
-                }, 500);
-            } else {
-                getUserAIExplanation(question, answer);
-            }
+            // Luôn hiện giải thích AI dù đúng hay sai
+            getUserAIExplanation(question, answer);
         };
 
         async function getUserAIExplanation(question, selectedAnswer) {
             const explanationDiv = document.getElementById('user-ai-explanation');
             const loadingSpinner = document.getElementById('user-loading-ai');
             const explanationText = document.getElementById('user-explanation-text');
+            let summaryDiv = document.getElementById('user-topic-summary');
+            if (!summaryDiv) {
+                summaryDiv = document.createElement('div');
+                summaryDiv.id = 'user-topic-summary';
+                summaryDiv.className = 'mt-3 p-3 bg-blue-50 border-l-4 border-blue-400 rounded text-blue-800 text-sm hidden';
+                explanationDiv.appendChild(summaryDiv);
+            }
+            summaryDiv.classList.add('hidden');
+            summaryDiv.textContent = '';
 
             explanationDiv.classList.remove('hidden');
             loadingSpinner.classList.remove('hidden');
-            explanationText.textContent = 'Đang phân tích câu trả lời...';
+            explanationText.innerHTML = '<span class="font-bold text-red-600">🤖 AI Giải thích:</span> Đang phân tích câu trả lời...';
 
             try {
                 const explanation = await callGeminiAPI(question, selectedAnswer);
-                explanationText.textContent = explanation;
+                // Tách phần "Nội dung thêm" nếu có
+                let mainExplain = explanation;
+                let summary = '';
+                const summaryMatch = explanation.match(/(Nội dung thêm|Kiến thức liên quan|Thông tin mở rộng)[^\n:]*[:\-]?([\s\S]*)/i);
+                if (summaryMatch) {
+                    mainExplain = explanation.slice(0, summaryMatch.index).trim();
+                    summary = summaryMatch[2].trim();
+                }
+                explanationText.innerHTML = `<span class="font-bold text-red-600">🤖 AI Giải thích:</span> <span>${mainExplain.replace(/\n/g, '<br>')}</span>`;
+                if (summary) {
+                    summaryDiv.innerHTML = `<span class="font-bold">📝 Nội dung thêm:</span> <span>${summary.replace(/\n/g, '<br>')}</span>`;
+                    summaryDiv.classList.remove('hidden');
+                }
             } catch (error) {
-                explanationText.textContent = `Không thể lấy giải thích từ AI. Đáp án đúng là ${question.correctAnswer}: ${question.answers[question.correctAnswer]}`;
+                explanationText.innerHTML = `<span class="font-bold text-red-600">🤖 AI Giải thích:</span> Không thể lấy giải thích từ AI. Đáp án đúng là <b>${question.correctAnswer}: ${question.answers[question.correctAnswer]}</b>`;
             } finally {
                 loadingSpinner.classList.add('hidden');
                 setTimeout(() => {
@@ -1597,19 +1613,30 @@
         }
 
         async function callGeminiAPI(question, selectedAnswer) {
-            const prompt = `Tôi đang làm bài trắc nghiệm. Đây là câu hỏi có hình ảnh. Tôi đã chọn đáp án ${selectedAnswer}, nhưng có vẻ sai. 
-Hãy giải thích tại sao đáp án đó sai và đáp án đúng là gì dựa trên nội dung câu hỏi trong hình. 
-Hãy rõ ràng và dễ hiểu.
+            // Lấy tên môn học và bộ đề
+            const subject = subjects.find(s => s.id === question.subjectId);
+            const questionSet = questionSets.find(qs => qs.id === question.questionSetId);
+            const subjectName = subject ? subject.name : 'Không rõ môn học';
+            const questionSetName = questionSet ? questionSet.name : 'Không rõ bộ đề';
 
-Câu hỏi: ${question.content || 'Xem trong hình'}
-Các đáp án:
+            // Prompt tối ưu cho Gemini
+            const prompt = `Tôi đang làm bài trắc nghiệm AI. Thông tin câu hỏi:
+- Môn học: ${subjectName}
+- Bộ đề: ${questionSetName}
+- Nội dung: ${question.content || 'Xem trong hình'}
+- Các đáp án:
 A. ${question.answers.A}
 B. ${question.answers.B}
-C. ${question.answers.C}  
+C. ${question.answers.C}
 D. ${question.answers.D}
+- Đáp án đúng: ${question.correctAnswer}
+- Đáp án tôi chọn: ${selectedAnswer}
 
-Đáp án đúng: ${question.correctAnswer}
-Đáp án tôi chọn: ${selectedAnswer}`;
+Yêu cầu:
+1. Giải thích ngắn gọn, dễ hiểu (bằng tiếng Việt) tại sao đáp án tôi chọn đúng hoặc sai, và tại sao đáp án đúng là chính xác.
+2. Sau phần giải thích, hãy cho biết thêm về nội dung câu hỏi này hoặc các kiến thức liên quan mà người học nên biết thêm (ngắn gọn, dễ hiểu, tiếng Việt).
+3. Ưu tiên trình bày rõ ràng, dễ đọc, có thể dùng bullet hoặc phân đoạn.
+`;
 
             // Try API key 1 first, then API key 2
             const keys = [apiKeys.key1, apiKeys.key2].filter(key => key);
