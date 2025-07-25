@@ -706,34 +706,49 @@
         let questionSets = [];
         let currentZoom = 1;
 
+        // Thêm biến kiểm soát đã gán sự kiện dropzone auto-quiz chưa
+        let autoQuizDropzoneEventsBound = false;
+
         // Admin Tab Management
-        window.showAdminTab = function(tabName) {
-            // Hide all tabs
-            document.getElementById('admin-tab-subjects').classList.add('hidden');
-            document.getElementById('admin-tab-questions').classList.add('hidden');
-            document.getElementById('admin-tab-settings').classList.add('hidden');
-            document.getElementById('admin-tab-users').classList.add('hidden');
-            document.getElementById('admin-tab-auto-quiz').classList.add('hidden');
-            
-            // Remove active class from all tab buttons
-            document.querySelectorAll('[id^="tab-"]').forEach(tab => {
-                tab.className = 'px-6 py-3 text-gray-600 hover:text-gray-800';
-            });
-            
-            // Show selected tab
-            document.getElementById(`admin-tab-${tabName}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabName}`).className = 'px-6 py-3 border-b-2 border-blue-500 text-blue-600 font-semibold';
+        window.showAdminTab = function(tab) {
+            // Ẩn tất cả tab admin
+            document.querySelectorAll('[id^="admin-tab-"]').forEach(e => e.classList.add('hidden'));
+            // Bỏ active tất cả tab
+            document.querySelectorAll('[id^="tab-"]').forEach(e => e.classList.remove('border-b-2', 'border-blue-500', 'text-blue-600', 'font-semibold'));
+            // Hiện tab được chọn
+            document.getElementById('admin-tab-' + tab).classList.remove('hidden');
+            document.getElementById('tab-' + tab).classList.add('border-b-2', 'border-blue-500', 'text-blue-600', 'font-semibold');
+
+            if (tab === 'auto-quiz' && !autoQuizDropzoneEventsBound) {
+                // Gán sự kiện cho dropzone và input file khi tab auto-quiz được mở lần đầu
+                const dropzone = document.getElementById('auto-quiz-dropzone');
+                const fileInput = document.getElementById('auto-quiz-image-input');
+                const previewDiv = document.getElementById('auto-quiz-preview');
+                const startBtn = document.getElementById('auto-quiz-start-btn');
+                if (dropzone && fileInput && previewDiv && startBtn) {
+                    dropzone.addEventListener('click', () => fileInput.click());
+                    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('bg-blue-100'); });
+                    dropzone.addEventListener('dragleave', e => { e.preventDefault(); dropzone.classList.remove('bg-blue-100'); });
+                    dropzone.addEventListener('drop', e => {
+                        e.preventDefault();
+                        dropzone.classList.remove('bg-blue-100');
+                        handleFiles(e.dataTransfer.files);
+                    });
+                    fileInput.addEventListener('change', e => handleFiles(e.target.files));
+                    autoQuizDropzoneEventsBound = true;
+                }
+            }
             
             // Load data for specific tabs
-            if (tabName === 'subjects') {
+            if (tab === 'subjects') {
                 loadSubjects();
-            } else if (tabName === 'questions') {
+            } else if (tab === 'questions') {
                 loadSubjectsDropdown();
-            } else if (tabName === 'settings') {
+            } else if (tab === 'settings') {
                 loadAdminApiKeys();
-            } else if (tabName === 'users') {
+            } else if (tab === 'users') {
                 loadUserStatistics();
-            } else if (tabName === 'auto-quiz') {
+            } else if (tab === 'auto-quiz') {
                 // Load auto quiz data
                 loadAutoQuizData();
             }
