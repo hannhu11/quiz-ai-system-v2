@@ -2314,10 +2314,19 @@ D. ${question.answers.D}
                     img.alt = file.name;
                     img.className = 'w-24 h-24 object-cover rounded shadow border border-gray-200';
                     previewDiv.appendChild(img);
+                    // Enable nút nếu có ít nhất 1 ảnh
+                    if (autoQuizImages.length > 0) {
+                        startBtn.disabled = false;
+                    }
                 };
                 reader.readAsDataURL(file);
             });
-            setTimeout(() => { startBtn.disabled = autoQuizImages.length === 0; }, 300);
+            // Nếu không có ảnh nào, disable nút
+            setTimeout(() => {
+                if (autoQuizImages.length === 0) {
+                    startBtn.disabled = true;
+                }
+            }, 500);
         }
 
         // Thêm biến lưu API key Google Cloud Vision (hardcode hoặc cho phép nhập ở phần cài đặt nếu muốn)
