@@ -1588,23 +1588,26 @@
         function formatGeminiText(text) {
             if (!text) return text;
             
-            // Convert ## headers to <h3> tags
+            // First, handle headers
             text = text.replace(/^##\s+(.*?)$/gm, '<h3 class="font-bold text-lg mt-4 mb-2 text-blue-800">$1</h3>');
-            
-            // Convert ### headers to <h4> tags
             text = text.replace(/^###\s+(.*?)$/gm, '<h4 class="font-semibold text-base mt-3 mb-2 text-blue-700">$1</h4>');
             
-            // Convert **bold** to <strong>bold</strong>
+            // Handle bullet points FIRST (before processing ** and *)
+            // This covers *, -, •, and even ** at start of line as bullet points
+            text = text.replace(/^[\*]{1,2}[\-•]?\s+(.*?)$/gm, '<div class="ml-4 mb-1">• $1</div>');
+            text = text.replace(/^[\-•]\s+(.*?)$/gm, '<div class="ml-4 mb-1">• $1</div>');
+            
+            // Handle numbered lists
+            text = text.replace(/^\d+\.\s+(.*?)$/gm, '<div class="ml-4 mb-1">$&</div>');
+            
+            // Now handle bold text (**text**) - anywhere in text
             text = text.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-blue-900">$1</strong>');
             
-            // Convert *italic* to <em>italic</em> (but not at start of line for bullet points)
-            text = text.replace(/(?<!^|\s)\*(.*?)\*/g, '<em class="italic text-gray-700">$1</em>');
+            // Handle italic text (*text*) - but NOT at start of line (already handled as bullets)
+            text = text.replace(/(?<!^|\n)\*(.*?)\*/g, '<em class="italic text-gray-700">$1</em>');
             
-            // Convert bullet points at start of line (*, -, •) to proper list items
-            text = text.replace(/^[\*\-•]\s*(.*?)$/gm, '<div class="ml-4 mb-1">• $1</div>');
-            
-            // Convert numbered lists
-            text = text.replace(/^\d+\.\s+(.*?)$/gm, '<div class="ml-4 mb-1">$&</div>');
+            // Clean up any remaining standalone * or ** at start of lines that weren't caught
+            text = text.replace(/^[\*]{1,2}\s*$/gm, '');
             
             // Convert line breaks to <br>
             text = text.replace(/\n/g, '<br>');
