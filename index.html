@@ -40,6 +40,21 @@
             animation: spin 1s linear infinite; 
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Styles for new question management system */
+        .question-block {
+            transition: all 0.3s ease;
+        }
+        .question-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        .answer-option {
+            transition: all 0.2s ease;
+        }
+        .answer-option:hover {
+            background-color: #f8f9fa;
+        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -222,77 +237,68 @@
 
                     <!-- Questions Tab -->
                     <div id="admin-tab-questions" class="hidden">
-                        <!-- Add Question Form -->
-                        <div class="bg-gray-50 rounded-lg p-6 mb-8">
-                            <h3 class="text-xl font-bold text-gray-800 mb-4">➕ Thêm câu hỏi mới</h3>
-                            <form onsubmit="addQuestion(event)" class="space-y-4">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Môn học:</label>
-                                        <select id="question-subject" required onchange="loadQuestionSets()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                            <option value="">Chọn môn học</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Bộ đề:</label>
-                                        <select id="question-set" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                            <option value="">Chọn bộ đề</option>
-                                        </select>
-                                    </div>
-                                </div>
+                        <!-- Step 1: Select Subject and Question Set -->
+                        <div id="question-select-step" class="bg-blue-50 rounded-lg p-6 mb-8">
+                            <h3 class="text-xl font-bold text-blue-800 mb-4">📚 Bước 1: Chọn môn học và bộ đề</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Hình ảnh câu hỏi:</label>
-                                    <input type="file" id="question-image-input" accept="image/*" required 
-                                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                    <div id="image-preview" class="mt-4 text-center hidden">
-                                        <img id="preview-img" src="" alt="Preview" class="max-w-xs max-h-48 mx-auto rounded-lg shadow-md">
-                                    </div>
-                                </div>
-                                
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nội dung câu hỏi (tùy chọn):</label>
-                                    <textarea id="question-content-input" rows="3" placeholder="Nhập nội dung câu hỏi nếu cần bổ sung..." 
-                                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án A:</label>
-                                        <input type="text" id="answer-a" required placeholder="Nhập đáp án A" 
-                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án B:</label>
-                                        <input type="text" id="answer-b" required placeholder="Nhập đáp án B" 
-                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án C:</label>
-                                        <input type="text" id="answer-c" required placeholder="Nhập đáp án C" 
-                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án D:</label>
-                                        <input type="text" id="answer-d" required placeholder="Nhập đáp án D" 
-                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án đúng:</label>
-                                    <select id="correct-answer" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                        <option value="">Chọn đáp án đúng</option>
-                                        <option value="A">A</option>
-                                        <option value="B">B</option>
-                                        <option value="C">C</option>
-                                        <option value="D">D</option>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Môn học:</label>
+                                    <select id="select-question-subject" onchange="loadQuestionSetsForSelection()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Chọn môn học</option>
                                     </select>
                                 </div>
-
-                                <button type="submit" class="w-full py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold">
-                                    ➕ Thêm câu hỏi
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Bộ đề:</label>
+                                    <select id="select-question-set" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Chọn bộ đề</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="mt-4">
+                                <button onclick="proceedToQuestionForm()" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold">
+                                    ▶️ Tiếp tục thêm câu hỏi
                                 </button>
-                            </form>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Add Questions Form (Initially Hidden) -->
+                        <div id="question-form-step" class="hidden">
+                            <!-- Selected Info Display -->
+                            <div class="bg-green-50 rounded-lg p-4 mb-6">
+                                <h4 class="font-semibold text-green-800 mb-2">📖 Đang thêm câu hỏi cho:</h4>
+                                <div id="selected-info" class="text-green-700">
+                                    <!-- Will be populated dynamically -->
+                                </div>
+                                <button onclick="backToSelection()" class="mt-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">
+                                    ← Thay đổi môn học/bộ đề
+                                </button>
+                            </div>
+
+                            <!-- Questions Container -->
+                            <div id="questions-container" class="space-y-6">
+                                <!-- Questions will be added here -->
+                            </div>
+
+                            <!-- Add More Question Button -->
+                            <div class="text-center mb-6">
+                                <button onclick="addNewQuestionBlock()" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold">
+                                    ➕ Thêm câu hỏi mới
+                                </button>
+                            </div>
+
+                            <!-- Submit All Questions -->
+                            <div class="bg-yellow-50 rounded-lg p-6">
+                                <h4 class="font-semibold text-yellow-800 mb-4">🚀 Hoàn tất và gửi tất cả câu hỏi</h4>
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <p class="text-yellow-700">Tổng số câu hỏi đã chuẩn bị: <span id="total-questions-count" class="font-bold">0</span></p>
+                                        <p class="text-sm text-yellow-600 mt-1">Kiểm tra kỹ tất cả câu hỏi trước khi gửi</p>
+                                    </div>
+                                    <button onclick="submitAllQuestions()" class="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold">
+                                        📤 Gửi tất cả câu hỏi
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Questions List -->
@@ -484,7 +490,7 @@
                         <p>Thời gian hoàn thành: <span id="user-final-time" class="font-bold text-blue-600"></span></p>
                     </div>
                     <div class="flex flex-wrap justify-center gap-3">
-                        <button onclick="reviewQuiz()" class="px-8 py-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-lg font-semibold shadow-lg border-2 border-orange-600">
+                        <button onclick="reviewQuiz()" class="px-8 py-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-lg font-semibold shadow-lg border-2 border-purple-600">
                             Xem lại bài làm
                         </button>
                         <button onclick="backToQuizSelection()" class="px-8 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-lg font-semibold shadow-lg border-2 border-blue-600">
@@ -707,6 +713,8 @@
         let subjects = [];
         let questionSets = [];
         let currentZoom = 1;
+        let questionsToSubmit = []; // Array to store questions before submitting
+        let questionBlockCounter = 0;
 
         // Đặt ở ngoài cùng, trước mọi hàm và logic liên quan auto-quiz
         var autoQuizImages = [];
@@ -776,24 +784,28 @@
             if (tab === 'subjects') {
                 loadSubjects();
             } else if (tab === 'questions') {
-                loadSubjectsDropdown();
+                loadSubjectsDropdownForSelection();
+                resetQuestionForm();
             } else if (tab === 'settings') {
                 loadAdminApiKeys();
             } else if (tab === 'users') {
                 loadUserStatistics();
             } else if (tab === 'auto-quiz') {
-                // Load auto quiz data
-                loadAutoQuizData();
+                // Load auto quiz data - placeholder for now
+                // loadAutoQuizData(); // Function will be implemented if needed
             }
         };
 
-        // Question Management
+        // Question Management (Old system - keep for backward compatibility)
         window.addQuestion = async function(event) {
             event.preventDefault();
             
-            const subjectId = document.getElementById('question-subject').value;
-            const questionSetId = document.getElementById('question-set').value;
-            const imageFile = document.getElementById('question-image-input').files[0];
+            const subjectId = document.getElementById('question-subject')?.value;
+            const questionSetId = document.getElementById('question-set')?.value;
+            const imageFile = document.getElementById('question-image-input')?.files[0];
+            
+            // This is the old single question add function - rarely used now
+            // Most admin will use the new batch system
             
             if (!subjectId || !questionSetId) {
                 alert('Vui lòng chọn môn học và bộ đề');
@@ -824,28 +836,9 @@
                 };
 
                 try {
-                    // Save to Firebase
                     await addDoc(collection(window.db, 'questions'), question);
-                    
-                    // Refresh question list
                     await loadAdminQuestions();
                     await loadAdminStats();
-                    
-                    // Reset form but keep subject and question set selection
-                    const form = document.querySelector('#admin-tab-questions form');
-                    const subjectValue = document.getElementById('question-subject').value;
-                    const questionSetValue = document.getElementById('question-set').value;
-                    
-                    form.reset();
-                    
-                    // Restore selections
-                    document.getElementById('question-subject').value = subjectValue;
-                    if (subjectValue) {
-                        await loadQuestionSets(); // Reload question sets for the subject
-                        document.getElementById('question-set').value = questionSetValue;
-                    }
-                    
-                    document.getElementById('image-preview').classList.add('hidden');
                     
                     alert('Thêm câu hỏi thành công!');
                 } catch (error) {
@@ -966,10 +959,11 @@
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-sm">
-                                    <div>A. ${question.answers.A}</div>
-                                    <div>B. ${question.answers.B}</div>
-                                    <div>C. ${question.answers.C}</div>
-                                    <div>D. ${question.answers.D}</div>
+                                    ${Object.entries(question.answers || {}).map(([key, value]) => {
+                                        // Skip empty answers
+                                        if (!value || !value.trim()) return '';
+                                        return `<div>${key}. ${value}</div>`;
+                                    }).filter(html => html !== '').join('')}
                                 </div>
                             </div>
                             <div class="flex flex-col space-y-2 ml-4">
@@ -1531,10 +1525,25 @@
             document.getElementById('user-question-image').src = question.image;
             document.getElementById('user-question-text').textContent = question.content || '';
 
-            document.getElementById('user-option-A').querySelector('.answer-text').textContent = question.answers.A;
-            document.getElementById('user-option-B').querySelector('.answer-text').textContent = question.answers.B;
-            document.getElementById('user-option-C').querySelector('.answer-text').textContent = question.answers.C;
-            document.getElementById('user-option-D').querySelector('.answer-text').textContent = question.answers.D;
+            // Clear existing answer options
+            const answerContainer = document.querySelector('#user-question-content .grid');
+            answerContainer.innerHTML = '';
+
+            // Create answer options dynamically based on available answers
+            const availableAnswers = Object.keys(question.answers).sort();
+            
+            availableAnswers.forEach(letter => {
+                const answerValue = question.answers[letter];
+                if (answerValue && answerValue.trim()) {
+                    const answerButton = document.createElement('button');
+                    answerButton.id = `user-option-${letter}`;
+                    answerButton.onclick = () => userSelectAnswer(letter);
+                    answerButton.className = 'user-answer-btn p-4 text-left border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all';
+                    answerButton.innerHTML = `<span class="font-bold text-blue-600">${letter}. </span><span class="answer-text">${answerValue}</span>`;
+                    
+                    answerContainer.appendChild(answerButton);
+                }
+            });
 
             resetUserAnswerButtons();
             document.getElementById('user-ai-explanation').classList.add('hidden');
@@ -1790,7 +1799,463 @@ Yêu cầu:
             }
         }
 
-        // ================== NEW FEATURES ==================
+        // ================== NEW QUESTION MANAGEMENT SYSTEM ==================
+        
+        // Step 1: Load subjects for selection
+        async function loadSubjectsDropdownForSelection() {
+            try {
+                const subjectsSnapshot = await getDocs(collection(window.db, 'subjects'));
+                subjects = [];
+                subjectsSnapshot.forEach((doc) => {
+                    subjects.push({ id: doc.id, ...doc.data() });
+                });
+                
+                const subjectSelect = document.getElementById('select-question-subject');
+                subjectSelect.innerHTML = '<option value="">Chọn môn học</option>';
+                subjects.forEach(subject => {
+                    subjectSelect.innerHTML += `<option value="${subject.id}">${subject.name}</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading subjects dropdown:', error);
+            }
+        }
+
+        // Step 1: Load question sets for selected subject
+        window.loadQuestionSetsForSelection = async function() {
+            const subjectId = document.getElementById('select-question-subject').value;
+            if (!subjectId) return;
+            
+            try {
+                const questionSetsSnapshot = await getDocs(collection(window.db, 'questionSets'));
+                const subjectQuestionSets = [];
+                questionSetsSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    if (data.subjectId === subjectId) {
+                        subjectQuestionSets.push({ id: doc.id, ...data });
+                    }
+                });
+                
+                const questionSetSelect = document.getElementById('select-question-set');
+                questionSetSelect.innerHTML = '<option value="">Chọn bộ đề</option>';
+                subjectQuestionSets.forEach(qs => {
+                    questionSetSelect.innerHTML += `<option value="${qs.id}">${qs.name}</option>`;
+                });
+            } catch (error) {
+                console.error('Error loading question sets:', error);
+            }
+        };
+
+        // Step 1: Proceed to question form
+        window.proceedToQuestionForm = function() {
+            const subjectId = document.getElementById('select-question-subject').value;
+            const questionSetId = document.getElementById('select-question-set').value;
+            
+            if (!subjectId || !questionSetId) {
+                alert('Vui lòng chọn đầy đủ môn học và bộ đề');
+                return;
+            }
+            
+            // Store selected IDs
+            currentSubjectId = subjectId;
+            currentQuestionSetId = questionSetId;
+            
+            // Display selected info
+            const selectedSubject = subjects.find(s => s.id === subjectId);
+            const selectedQuestionSet = questionSets.find(qs => qs.id === questionSetId);
+            
+            document.getElementById('selected-info').innerHTML = `
+                <p><strong>📚 Môn học:</strong> ${selectedSubject?.name || 'Không xác định'}</p>
+                <p><strong>📋 Bộ đề:</strong> ${selectedQuestionSet?.name || 'Không xác định'}</p>
+            `;
+            
+            // Hide selection step, show form step
+            document.getElementById('question-select-step').classList.add('hidden');
+            document.getElementById('question-form-step').classList.remove('hidden');
+            
+            // Initialize with first question block
+            questionsToSubmit = [];
+            questionBlockCounter = 0;
+            document.getElementById('questions-container').innerHTML = '';
+            addNewQuestionBlock();
+        };
+
+        // Step 2: Back to selection
+        window.backToSelection = function() {
+            document.getElementById('question-form-step').classList.add('hidden');
+            document.getElementById('question-select-step').classList.remove('hidden');
+            
+            // Reset form data
+            questionsToSubmit = [];
+            questionBlockCounter = 0;
+            document.getElementById('questions-container').innerHTML = '';
+            updateQuestionCount();
+        };
+
+        // Step 2: Add new question block
+        window.addNewQuestionBlock = function() {
+            questionBlockCounter++;
+            const questionId = `question-${questionBlockCounter}`;
+            
+            const questionHTML = `
+                <div class="question-block bg-white rounded-lg shadow-md p-6 border border-gray-200" data-question-id="${questionId}">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-semibold text-gray-800">📝 Câu hỏi ${questionBlockCounter}</h4>
+                        <button onclick="removeQuestionBlock('${questionId}')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm">
+                            🗑️ Xóa câu hỏi này
+                        </button>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <!-- Image Upload -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Hình ảnh câu hỏi:</label>
+                            <input type="file" id="${questionId}-image" accept="image/*" onchange="previewQuestionImage('${questionId}')"
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                            <div id="${questionId}-image-preview" class="mt-4 text-center hidden">
+                                <img id="${questionId}-preview-img" src="" alt="Preview" class="max-w-xs max-h-48 mx-auto rounded-lg shadow-md">
+                            </div>
+                        </div>
+                        
+                        <!-- Question Content -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nội dung câu hỏi (tùy chọn):</label>
+                            <textarea id="${questionId}-content" rows="3" placeholder="Nhập nội dung câu hỏi nếu cần bổ sung..." 
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
+                        </div>
+
+                        <!-- Answer Options -->
+                        <div id="${questionId}-answers" class="space-y-3">
+                            <h5 class="font-medium text-gray-700">Các đáp án:</h5>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="answer-option">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Đáp án A:</label>
+                                    <input type="text" id="${questionId}-answer-A" placeholder="Nhập đáp án A" 
+                                           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                </div>
+                                <div class="answer-option">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Đáp án B:</label>
+                                    <input type="text" id="${questionId}-answer-B" placeholder="Nhập đáp án B" 
+                                           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                </div>
+                                <div class="answer-option">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Đáp án C:</label>
+                                    <input type="text" id="${questionId}-answer-C" placeholder="Nhập đáp án C" 
+                                           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                </div>
+                                <div class="answer-option">
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">Đáp án D:</label>
+                                    <input type="text" id="${questionId}-answer-D" placeholder="Nhập đáp án D" 
+                                           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                </div>
+                            </div>
+                            
+                            <!-- Add More Options Button -->
+                            <div class="text-center mt-3">
+                                <button onclick="addMoreOption('${questionId}')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">
+                                    ➕ Thêm đáp án (E, F, G...)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Correct Answer Selection -->
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án đúng:</label>
+                            <select id="${questionId}-correct" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <option value="">Chọn đáp án đúng</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                                <option value="D">D</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Validate Question Button -->
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <button onclick="validateQuestion('${questionId}')" class="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium">
+                                ✅ Kiểm tra câu hỏi này
+                            </button>
+                            <div id="${questionId}-validation" class="mt-2 text-sm"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('questions-container').insertAdjacentHTML('beforeend', questionHTML);
+            updateQuestionCount();
+        };
+
+        // Preview image for each question
+        window.previewQuestionImage = function(questionId) {
+            const fileInput = document.getElementById(`${questionId}-image`);
+            const preview = document.getElementById(`${questionId}-image-preview`);
+            const previewImg = document.getElementById(`${questionId}-preview-img`);
+            
+            const file = fileInput.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    preview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // Add more options (E, F, G, etc.)
+        window.addMoreOption = function(questionId) {
+            const answersContainer = document.getElementById(`${questionId}-answers`);
+            const existingOptions = answersContainer.querySelectorAll('.answer-option');
+            const nextLetter = String.fromCharCode(65 + existingOptions.length); // A=65, B=66, etc.
+            
+            if (existingOptions.length >= 8) { // Maximum 8 options (A-H)
+                alert('Tối đa 8 đáp án (A-H)');
+                return;
+            }
+            
+            const newOptionHTML = `
+                <div class="answer-option">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Đáp án ${nextLetter}:</label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="${questionId}-answer-${nextLetter}" placeholder="Nhập đáp án ${nextLetter}" 
+                               class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                        <button onclick="removeOption('${questionId}', '${nextLetter}')" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            // Insert before the "Add More Options" button
+            const addButton = answersContainer.querySelector('.text-center');
+            addButton.insertAdjacentHTML('beforebegin', newOptionHTML);
+            
+            // Update correct answer dropdown
+            const correctSelect = document.getElementById(`${questionId}-correct`);
+            correctSelect.innerHTML += `<option value="${nextLetter}">${nextLetter}</option>`;
+        };
+
+        // Remove option
+        window.removeOption = function(questionId, letter) {
+            if (['A', 'B', 'C', 'D'].includes(letter)) {
+                alert('Không thể xóa 4 đáp án cơ bản A, B, C, D');
+                return;
+            }
+            
+            // Remove the option element
+            const optionElement = document.getElementById(`${questionId}-answer-${letter}`).closest('.answer-option');
+            optionElement.remove();
+            
+            // Remove from correct answer dropdown
+            const correctSelect = document.getElementById(`${questionId}-correct`);
+            const optionToRemove = correctSelect.querySelector(`option[value="${letter}"]`);
+            if (optionToRemove) {
+                optionToRemove.remove();
+            }
+            
+            // Reset correct answer if it was the removed option
+            if (correctSelect.value === letter) {
+                correctSelect.value = '';
+            }
+        };
+
+        // Remove entire question block
+        window.removeQuestionBlock = function(questionId) {
+            if (!confirm('Bạn có chắc muốn xóa câu hỏi này?')) return;
+            
+            const questionBlock = document.querySelector(`[data-question-id="${questionId}"]`);
+            questionBlock.remove();
+            updateQuestionCount();
+        };
+
+        // Validate individual question
+        window.validateQuestion = function(questionId) {
+            const validationDiv = document.getElementById(`${questionId}-validation`);
+            const errors = [];
+            
+            // Check image
+            const imageInput = document.getElementById(`${questionId}-image`);
+            if (!imageInput.files[0]) {
+                errors.push('❌ Chưa chọn hình ảnh');
+            }
+            
+            // Check answers
+            const answerInputs = document.querySelectorAll(`[id^="${questionId}-answer-"]`);
+            let emptyAnswers = 0;
+            let validAnswers = 0;
+            
+            answerInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    emptyAnswers++;
+                } else {
+                    validAnswers++;
+                }
+            });
+            
+            if (validAnswers < 2) {
+                errors.push('❌ Cần ít nhất 2 đáp án');
+            }
+            
+            // Check correct answer
+            const correctAnswer = document.getElementById(`${questionId}-correct`).value;
+            if (!correctAnswer) {
+                errors.push('❌ Chưa chọn đáp án đúng');
+            } else {
+                // Check if correct answer exists and has content
+                const correctInput = document.getElementById(`${questionId}-answer-${correctAnswer}`);
+                if (!correctInput || !correctInput.value.trim()) {
+                    errors.push('❌ Đáp án đúng được chọn nhưng chưa có nội dung');
+                }
+            }
+            
+            // Display validation result
+            if (errors.length === 0) {
+                validationDiv.innerHTML = '<p class="text-green-600 font-medium">✅ Câu hỏi hợp lệ, sẵn sàng gửi!</p>';
+                validationDiv.className = 'mt-2 text-sm p-2 bg-green-50 border border-green-200 rounded';
+            } else {
+                validationDiv.innerHTML = `<div class="text-red-600">${errors.join('<br>')}</div>`;
+                validationDiv.className = 'mt-2 text-sm p-2 bg-red-50 border border-red-200 rounded';
+            }
+            
+            return errors.length === 0;
+        };
+
+        // Update question count
+        function updateQuestionCount() {
+            const questionBlocks = document.querySelectorAll('.question-block');
+            document.getElementById('total-questions-count').textContent = questionBlocks.length;
+        }
+
+        // Reset question form
+        function resetQuestionForm() {
+            document.getElementById('question-form-step').classList.add('hidden');
+            document.getElementById('question-select-step').classList.remove('hidden');
+            
+            // Reset selections
+            document.getElementById('select-question-subject').value = '';
+            document.getElementById('select-question-set').innerHTML = '<option value="">Chọn bộ đề</option>';
+            
+            // Reset form data
+            questionsToSubmit = [];
+            questionBlockCounter = 0;
+            document.getElementById('questions-container').innerHTML = '';
+            updateQuestionCount();
+        }
+
+        // Step 3: Submit all questions
+        window.submitAllQuestions = async function() {
+            const questionBlocks = document.querySelectorAll('.question-block');
+            
+            if (questionBlocks.length === 0) {
+                alert('Chưa có câu hỏi nào để gửi!');
+                return;
+            }
+            
+            // Validate all questions first
+            let allValid = true;
+            const validationResults = [];
+            
+            questionBlocks.forEach((block) => {
+                const questionId = block.dataset.questionId;
+                const isValid = validateQuestion(questionId);
+                validationResults.push({ questionId, isValid });
+                if (!isValid) allValid = false;
+            });
+            
+            if (!allValid) {
+                alert('Vui lòng kiểm tra và sửa các lỗi trong câu hỏi trước khi gửi!');
+                return;
+            }
+            
+            // Confirm submission
+            if (!confirm(`Bạn có chắc muốn gửi ${questionBlocks.length} câu hỏi lên hệ thống?`)) {
+                return;
+            }
+            
+            // Prepare questions for submission
+            const questionsToSubmit = [];
+            
+            for (const block of questionBlocks) {
+                const questionId = block.dataset.questionId;
+                
+                // Get image as base64
+                const imageInput = document.getElementById(`${questionId}-image`);
+                const imageFile = imageInput.files[0];
+                
+                if (!imageFile) continue;
+                
+                const imageBase64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(imageFile);
+                });
+                
+                // Get all answers
+                const answerInputs = document.querySelectorAll(`[id^="${questionId}-answer-"]`);
+                const answers = {};
+                
+                answerInputs.forEach(input => {
+                    const letter = input.id.split('-answer-')[1];
+                    const value = input.value.trim();
+                    if (value) {
+                        answers[letter] = value;
+                    }
+                });
+                
+                const question = {
+                    subjectId: currentSubjectId,
+                    questionSetId: currentQuestionSetId,
+                    image: imageBase64,
+                    content: document.getElementById(`${questionId}-content`).value.trim(),
+                    answers: answers,
+                    correctAnswer: document.getElementById(`${questionId}-correct`).value,
+                    createdAt: new Date(),
+                    createdBy: currentUser
+                };
+                
+                questionsToSubmit.push(question);
+            }
+            
+            // Submit all questions to Firebase
+            const submitButton = document.querySelector('button[onclick="submitAllQuestions()"]');
+            submitButton.disabled = true;
+            submitButton.textContent = '📤 Đang gửi câu hỏi...';
+            
+            try {
+                let successCount = 0;
+                let errorCount = 0;
+                
+                for (const question of questionsToSubmit) {
+                    try {
+                        await addDoc(collection(window.db, 'questions'), question);
+                        successCount++;
+                    } catch (error) {
+                        console.error('Error adding question:', error);
+                        errorCount++;
+                    }
+                }
+                
+                // Show results
+                if (errorCount === 0) {
+                    alert(`🎉 Thành công! Đã thêm ${successCount} câu hỏi vào hệ thống.`);
+                } else {
+                    alert(`⚠️ Hoàn thành với một số lỗi:\n✅ Thành công: ${successCount} câu\n❌ Lỗi: ${errorCount} câu`);
+                }
+                
+                // Refresh data and reset form
+                await loadAdminQuestions();
+                await loadAdminStats();
+                resetQuestionForm();
+                
+            } catch (error) {
+                console.error('Error in batch submission:', error);
+                alert('❌ Có lỗi xảy ra khi gửi câu hỏi. Vui lòng thử lại!');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = '📤 Gửi tất cả câu hỏi';
+            }
+        };
+
+        // ================== END NEW QUESTION MANAGEMENT SYSTEM ==================
         
         // Subject Management
         window.addSubject = async function(event) {
@@ -1979,18 +2444,21 @@ Yêu cầu:
                     subjects.push({ id: doc.id, ...doc.data() });
                 });
                 
+                // Load for old system if exists
                 const subjectSelect = document.getElementById('question-subject');
-                subjectSelect.innerHTML = '<option value="">Chọn môn học</option>';
-                subjects.forEach(subject => {
-                    subjectSelect.innerHTML += `<option value="${subject.id}">${subject.name}</option>`;
-                });
+                if (subjectSelect) {
+                    subjectSelect.innerHTML = '<option value="">Chọn môn học</option>';
+                    subjects.forEach(subject => {
+                        subjectSelect.innerHTML += `<option value="${subject.id}">${subject.name}</option>`;
+                    });
+                }
             } catch (error) {
                 console.error('Error loading subjects dropdown:', error);
             }
         }
 
         window.loadQuestionSets = async function() {
-            const subjectId = document.getElementById('question-subject').value;
+            const subjectId = document.getElementById('question-subject')?.value;
             if (!subjectId) return;
             
             try {
@@ -2004,10 +2472,12 @@ Yêu cầu:
                 });
                 
                 const questionSetSelect = document.getElementById('question-set');
-                questionSetSelect.innerHTML = '<option value="">Chọn bộ đề</option>';
-                subjectQuestionSets.forEach(qs => {
-                    questionSetSelect.innerHTML += `<option value="${qs.id}">${qs.name}</option>`;
-                });
+                if (questionSetSelect) {
+                    questionSetSelect.innerHTML = '<option value="">Chọn bộ đề</option>';
+                    subjectQuestionSets.forEach(qs => {
+                        questionSetSelect.innerHTML += `<option value="${qs.id}">${qs.name}</option>`;
+                    });
+                }
             } catch (error) {
                 console.error('Error loading question sets:', error);
             }
@@ -2163,7 +2633,10 @@ Yêu cầu:
                         ${question.content ? `<p class="text-gray-700 mb-4">${question.content}</p>` : ''}
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                            ${Object.entries(question.answers).map(([key, value]) => {
+                            ${Object.entries(question.answers || {}).map(([key, value]) => {
+                                // Skip empty answers
+                                if (!value || !value.trim()) return '';
+                                
                                 let bgClass = 'bg-gray-50 border-gray-200';
                                 let textClass = 'text-gray-700';
                                 let icon = '';
@@ -2183,7 +2656,7 @@ Yêu cầu:
                                         ${icon}${key}. ${value}
                                     </div>
                                 `;
-                            }).join('')}
+                            }).filter(html => html !== '').join('')}
                         </div>
                         
                         <div class="text-sm text-gray-600">
