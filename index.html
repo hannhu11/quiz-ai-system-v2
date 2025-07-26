@@ -1563,6 +1563,12 @@
             const question = questions[currentQuestionIndex];
             const isCorrect = answer === question.correctAnswer;
 
+            // ✅ FIX 1: Tăng điểm khi trả lời đúng
+            if (isCorrect) {
+                userScore++;
+                document.getElementById('user-score').textContent = userScore;
+            }
+
             document.querySelectorAll('.user-answer-btn').forEach(btn => {
                 btn.classList.add('pointer-events-none');
                 if (btn.id === `user-option-${answer}`) {
@@ -1577,6 +1583,25 @@
             // Luôn hiện giải thích AI dù đúng hay sai
             getUserAIExplanation(question, answer);
         };
+
+        // ✅ FIX 2: Function to convert Gemini markdown to HTML
+        function formatGeminiText(text) {
+            if (!text) return text;
+            
+            // Convert **bold** to <strong>bold</strong>
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            
+            // Convert *italic* to <em>italic</em>
+            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            // Convert line breaks to <br>
+            text = text.replace(/\n/g, '<br>');
+            
+            // Convert bullet points (- or •) to proper list items
+            text = text.replace(/^[\-•]\s*(.*?)$/gm, '• $1');
+            
+            return text;
+        }
 
         async function getUserAIExplanation(question, selectedAnswer) {
             const explanationDiv = document.getElementById('user-ai-explanation');
@@ -1606,9 +1631,14 @@
                     mainExplain = explanation.slice(0, summaryMatch.index).trim();
                     summary = summaryMatch[2].trim();
                 }
-                explanationText.innerHTML = `<span class="font-bold text-red-600">🤖 AI Giải thích:</span> <span>${mainExplain.replace(/\n/g, '<br>')}</span>`;
+                
+                // ✅ FIX 2: Format markdown text to HTML
+                const formattedExplanation = formatGeminiText(mainExplain);
+                explanationText.innerHTML = `<span class="font-bold text-red-600">🤖 AI Giải thích:</span> <span>${formattedExplanation}</span>`;
+                
                 if (summary) {
-                    summaryDiv.innerHTML = `<span class="font-bold">📝 Nội dung thêm:</span> <span>${summary.replace(/\n/g, '<br>')}</span>`;
+                    const formattedSummary = formatGeminiText(summary);
+                    summaryDiv.innerHTML = `<span class="font-bold">📝 Nội dung thêm:</span> <span>${formattedSummary}</span>`;
                     summaryDiv.classList.remove('hidden');
                 }
             } catch (error) {
@@ -1702,9 +1732,13 @@ Yêu cầu:
             
             const completionTime = Math.floor((Date.now() - quizStartTime) / 1000);
             
+            // ✅ FIX 3: Tính điểm theo thang 10
+            const scoreOutOf10 = Math.round((userScore / questions.length) * 10 * 100) / 100; // Làm tròn 2 chữ số thập phân
+            const percentage = Math.round((userScore / questions.length) * 100);
+            
             document.getElementById('user-question-content').classList.add('hidden');
             document.getElementById('user-quiz-complete').classList.remove('hidden');
-            document.getElementById('user-final-score').textContent = `${userScore}/${questions.length}`;
+            document.getElementById('user-final-score').textContent = `${userScore}/${questions.length} (${scoreOutOf10}/10 điểm - ${percentage}%)`;
             document.getElementById('user-final-time').textContent = formatTime(completionTime);
             
             // Save session to Firebase - Always create new session
@@ -1717,7 +1751,8 @@ Yêu cầu:
                     completedAt: new Date(),
                     questionSetId: currentQuestionSetId,
                     sessionId: Date.now().toString(), // Unique session ID
-                    percentage: Math.round((userScore / questions.length) * 100)
+                    percentage: percentage,
+                    scoreOutOf10: scoreOutOf10 // ✅ Thêm điểm theo thang 10
                 };
                 
                 // Create custom document ID with username + timestamp for easier management
@@ -1736,7 +1771,8 @@ Yêu cầu:
                     completedAt: new Date().toISOString(),
                     questionSetId: currentQuestionSetId,
                     sessionId: Date.now().toString(),
-                    percentage: Math.round((userScore / questions.length) * 100)
+                    percentage: Math.round((userScore / questions.length) * 100),
+                    scoreOutOf10: Math.round((userScore / questions.length) * 10 * 100) / 100 // ✅ Backup cũng có điểm /10
                 });
                 localStorage.setItem('userSessions', JSON.stringify(existingSessions));
             }
@@ -2694,7 +2730,9 @@ Yêu cầu:
             
             try {
                 const explanation = await callGeminiAPI(question, userAnswer);
-                explanationContent.innerHTML = `<p>${explanation}</p>`;
+                // ✅ FIX 2: Apply formatting to review explanation too
+                const formattedExplanation = formatGeminiText(explanation);
+                explanationContent.innerHTML = `<p>${formattedExplanation}</p>`;
             } catch (error) {
                 explanationContent.innerHTML = `
                     <p class="text-red-600">❌ Không thể lấy giải thích từ AI.</p>
