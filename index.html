@@ -40,21 +40,6 @@
             animation: spin 1s linear infinite; 
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Styles for new question management system */
-        .question-block {
-            transition: all 0.3s ease;
-        }
-        .question-block:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-        }
-        .answer-option {
-            transition: all 0.2s ease;
-        }
-        .answer-option:hover {
-            background-color: #f8f9fa;
-        }
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
@@ -199,7 +184,7 @@
                         👥 Thống kê User
                     </button>
                     <button onclick="showAdminTab('auto-quiz')" id="tab-auto-quiz" class="px-6 py-3 text-gray-600 hover:text-gray-800">
-                        🤖 Tạo bộ đề tự động từ ảnh
+                        🤖 Trích xuất câu hỏi từ ảnh
                     </button>
                 </div>
 
@@ -237,68 +222,77 @@
 
                     <!-- Questions Tab -->
                     <div id="admin-tab-questions" class="hidden">
-                        <!-- Step 1: Select Subject and Question Set -->
-                        <div id="question-select-step" class="bg-blue-50 rounded-lg p-6 mb-8">
-                            <h3 class="text-xl font-bold text-blue-800 mb-4">📚 Bước 1: Chọn môn học và bộ đề</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Môn học:</label>
-                                    <select id="select-question-subject" onchange="loadQuestionSetsForSelection()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="">Chọn môn học</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Bộ đề:</label>
-                                    <select id="select-question-set" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                                        <option value="">Chọn bộ đề</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mt-4">
-                                <button onclick="proceedToQuestionForm()" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold">
-                                    ▶️ Tiếp tục thêm câu hỏi
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Step 2: Add Questions Form (Initially Hidden) -->
-                        <div id="question-form-step" class="hidden">
-                            <!-- Selected Info Display -->
-                            <div class="bg-green-50 rounded-lg p-4 mb-6">
-                                <h4 class="font-semibold text-green-800 mb-2">📖 Đang thêm câu hỏi cho:</h4>
-                                <div id="selected-info" class="text-green-700">
-                                    <!-- Will be populated dynamically -->
-                                </div>
-                                <button onclick="backToSelection()" class="mt-2 px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm">
-                                    ← Thay đổi môn học/bộ đề
-                                </button>
-                            </div>
-
-                            <!-- Questions Container -->
-                            <div id="questions-container" class="space-y-6">
-                                <!-- Questions will be added here -->
-                            </div>
-
-                            <!-- Add More Question Button -->
-                            <div class="text-center mb-6">
-                                <button onclick="addNewQuestionBlock()" class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-semibold">
-                                    ➕ Thêm câu hỏi mới
-                                </button>
-                            </div>
-
-                            <!-- Submit All Questions -->
-                            <div class="bg-yellow-50 rounded-lg p-6">
-                                <h4 class="font-semibold text-yellow-800 mb-4">🚀 Hoàn tất và gửi tất cả câu hỏi</h4>
-                                <div class="flex justify-between items-center">
+                        <!-- Add Question Form -->
+                        <div class="bg-gray-50 rounded-lg p-6 mb-8">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4">➕ Thêm câu hỏi mới</h3>
+                            <form onsubmit="addQuestion(event)" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <p class="text-yellow-700">Tổng số câu hỏi đã chuẩn bị: <span id="total-questions-count" class="font-bold">0</span></p>
-                                        <p class="text-sm text-yellow-600 mt-1">Kiểm tra kỹ tất cả câu hỏi trước khi gửi</p>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Môn học:</label>
+                                        <select id="question-subject" required onchange="loadQuestionSets()" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                            <option value="">Chọn môn học</option>
+                                        </select>
                                     </div>
-                                    <button onclick="submitAllQuestions()" class="px-8 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold">
-                                        📤 Gửi tất cả câu hỏi
-                                    </button>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Bộ đề:</label>
+                                        <select id="question-set" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                            <option value="">Chọn bộ đề</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Hình ảnh câu hỏi:</label>
+                                    <input type="file" id="question-image-input" accept="image/*" required 
+                                           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    <div id="image-preview" class="mt-4 text-center hidden">
+                                        <img id="preview-img" src="" alt="Preview" class="max-w-xs max-h-48 mx-auto rounded-lg shadow-md">
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nội dung câu hỏi (tùy chọn):</label>
+                                    <textarea id="question-content-input" rows="3" placeholder="Nhập nội dung câu hỏi nếu cần bổ sung..." 
+                                              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án A:</label>
+                                        <input type="text" id="answer-a" required placeholder="Nhập đáp án A" 
+                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án B:</label>
+                                        <input type="text" id="answer-b" required placeholder="Nhập đáp án B" 
+                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án C:</label>
+                                        <input type="text" id="answer-c" required placeholder="Nhập đáp án C" 
+                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án D:</label>
+                                        <input type="text" id="answer-d" required placeholder="Nhập đáp án D" 
+                                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án đúng:</label>
+                                    <select id="correct-answer" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                        <option value="">Chọn đáp án đúng</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                        <option value="D">D</option>
+                                    </select>
+                                </div>
+
+                                <button type="submit" class="w-full py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold">
+                                    ➕ Thêm câu hỏi
+                                </button>
+                            </form>
                         </div>
 
                         <!-- Questions List -->
@@ -367,16 +361,29 @@
 
                     <!-- Auto Quiz Tab -->
                     <div id="admin-tab-auto-quiz" class="hidden">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">🤖 Tạo bộ đề tự động từ ảnh</h3>
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🤖 Trích xuất câu hỏi từ ảnh (OCR)</h3>
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Chọn nhiều ảnh đề thi (có thể kéo thả hoặc chọn nhiều file):</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Chọn nhiều ảnh chứa câu hỏi trắc nghiệm (có thể kéo thả hoặc chọn nhiều file):</label>
                             <div id="auto-quiz-dropzone" class="border-2 border-dashed border-blue-400 rounded-lg p-6 text-center bg-blue-50 cursor-pointer hover:bg-blue-100 transition-all">
                                 <span class="text-blue-600 font-semibold">Kéo & thả ảnh vào đây hoặc click để chọn file</span>
                                 <input type="file" id="auto-quiz-image-input" accept="image/*" multiple class="hidden">
                             </div>
                         </div>
                         <div id="auto-quiz-preview" class="flex flex-wrap gap-4 mb-4"></div>
-                        <button id="auto-quiz-start-btn" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors mt-2" disabled>Bắt đầu OCR & sinh câu hỏi</button>
+                        <div class="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h4 class="font-semibold text-blue-800 mb-2">🔑 Thông tin API</h4>
+                            <p class="text-blue-700 text-sm">Sử dụng 3 API key Gemini luân phiên để OCR và trích xuất câu hỏi</p>
+                            <p class="text-blue-600 text-xs mt-1">API Key hiện tại: <span id="current-api-key-display">-</span></p>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button id="auto-quiz-start-btn" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors mt-2 flex items-center justify-center" disabled>
+                                <span class="mr-2">🔍</span>
+                                <span>Bắt đầu OCR & trích xuất câu hỏi</span>
+                            </button>
+                            <button onclick="debugOcr()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors mt-2">
+                                🐛 Debug
+                            </button>
+                        </div>
                         <div id="auto-quiz-ocr-result" class="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-800 hidden"></div>
                     </div>
                 </div>
@@ -490,7 +497,7 @@
                         <p>Thời gian hoàn thành: <span id="user-final-time" class="font-bold text-blue-600"></span></p>
                     </div>
                     <div class="flex flex-wrap justify-center gap-3">
-                        <button onclick="reviewQuiz()" class="px-8 py-4 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-lg font-semibold shadow-lg border-2 border-purple-600">
+                        <button onclick="reviewQuiz()" class="px-8 py-4 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors text-lg font-semibold shadow-lg border-2 border-orange-600">
                             Xem lại bài làm
                         </button>
                         <button onclick="backToQuizSelection()" class="px-8 py-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-lg font-semibold shadow-lg border-2 border-blue-600">
@@ -636,6 +643,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('App initialized');
             setupImagePreview();
+            
+            // Khởi tạo OCR sau khi DOM đã sẵn sàng
+            setTimeout(() => {
+                initializeOcrFunction();
+                console.log('OCR function initialized');
+            }, 100);
         });
         
         // Authentication functions
@@ -713,8 +726,36 @@
         let subjects = [];
         let questionSets = [];
         let currentZoom = 1;
-        let questionsToSubmit = []; // Array to store questions before submitting
-        let questionBlockCounter = 0;
+
+        // Gemini API Keys - luân phiên sử dụng
+        const GEMINI_API_KEYS = [
+            'AIzaSyAqsdZ_HX2vRcHKSgU4dsqlUs1dSqH_fQI',
+            'AIzaSyBuE2J6iliBJbEfZN31QQlBaZeYBC5Yp4o',
+            'AIzaSyBa1S5MCTBHzq4AiPJj0D9iv9fO6PG-oV0'
+        ];
+        let currentGeminiKeyIndex = 0;
+
+        // Hàm lấy API key tiếp theo (luân phiên)
+        function getNextGeminiApiKey() {
+            const key = GEMINI_API_KEYS[currentGeminiKeyIndex];
+            currentGeminiKeyIndex = (currentGeminiKeyIndex + 1) % GEMINI_API_KEYS.length;
+            
+            // Cập nhật hiển thị API key hiện tại
+            const displayElement = document.getElementById('current-api-key-display');
+            if (displayElement) {
+                displayElement.textContent = `Key ${currentGeminiKeyIndex === 0 ? 3 : currentGeminiKeyIndex} (${key.substring(0, 10)}...)`;
+            }
+            
+            return key;
+        }
+
+        // Khởi tạo hiển thị API key hiện tại
+        function initializeApiKeyDisplay() {
+            const displayElement = document.getElementById('current-api-key-display');
+            if (displayElement && GEMINI_API_KEYS.length > 0) {
+                displayElement.textContent = `Key 1 (${GEMINI_API_KEYS[0].substring(0, 10)}...)`;
+            }
+        }
 
         // Đặt ở ngoài cùng, trước mọi hàm và logic liên quan auto-quiz
         var autoQuizImages = [];
@@ -723,25 +764,30 @@
 
         function handleFiles(files) {
             autoQuizImages = [];
-            autoQuizPreviewDiv.innerHTML = '';
+            if (autoQuizPreviewDiv) autoQuizPreviewDiv.innerHTML = '';
+            if (autoQuizStartBtn) autoQuizStartBtn.disabled = true;
+            
             Array.from(files).forEach(function(file) {
                 if (!file.type.startsWith('image/')) return;
                 var reader = new FileReader();
                 reader.onload = function(e) {
                     autoQuizImages.push({ name: file.name, data: e.target.result });
-                    var img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.alt = file.name;
-                    img.className = 'w-24 h-24 object-cover rounded shadow border border-gray-200';
-                    autoQuizPreviewDiv.appendChild(img);
-                    if (autoQuizImages.length > 0) {
+                    if (autoQuizPreviewDiv) {
+                        var img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.alt = file.name;
+                        img.className = 'w-24 h-24 object-cover rounded shadow border border-gray-200';
+                        autoQuizPreviewDiv.appendChild(img);
+                    }
+                    if (autoQuizStartBtn && autoQuizImages.length > 0) {
                         autoQuizStartBtn.disabled = false;
                     }
                 };
                 reader.readAsDataURL(file);
             });
+            
             setTimeout(function() {
-                if (autoQuizImages.length === 0) {
+                if (autoQuizStartBtn && autoQuizImages.length === 0) {
                     autoQuizStartBtn.disabled = true;
                 }
             }, 500);
@@ -749,6 +795,472 @@
 
         // Thêm biến kiểm soát đã gán sự kiện dropzone auto-quiz chưa
         let autoQuizDropzoneEventsBound = false;
+
+        // Hàm load dữ liệu auto quiz
+        function loadAutoQuizData() {
+            // Khởi tạo hiển thị API key
+            setTimeout(initializeApiKeyDisplay, 100);
+            
+                    // Khởi tạo chức năng OCR (đã được gọi trong DOMContentLoaded)
+        // initializeOcrFunction();
+        }
+
+        // Biến lưu trữ ảnh OCR (global)
+        let ocrImages = [];
+        
+        // Function debug OCR
+        window.debugOcr = function() {
+            console.log('OCR Images count:', ocrImages.length);
+            console.log('OCR Images:', ocrImages);
+            console.log('OCR Elements:', {
+                dropzone: document.getElementById('auto-quiz-dropzone'),
+                fileInput: document.getElementById('auto-quiz-image-input'),
+                previewDiv: document.getElementById('auto-quiz-preview'),
+                startBtn: document.getElementById('auto-quiz-start-btn')
+            });
+            
+            // Test handleOcrFiles function
+            console.log('Testing handleOcrFiles function...');
+            console.log('handleOcrFiles function exists:', typeof handleOcrFiles);
+            
+            // Test initializeOcrFunction
+            console.log('initializeOcrFunction exists:', typeof initializeOcrFunction);
+            
+            // Re-initialize OCR function
+            console.log('Re-initializing OCR function...');
+            initializeOcrFunction();
+            
+            // Test preview div
+            const previewDiv = document.getElementById('auto-quiz-preview');
+            if (previewDiv) {
+                console.log('Preview div found, adding test image...');
+                const testImg = document.createElement('img');
+                testImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjQ4IiB5PSI0OCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSIjNjc3NDhCIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+VGVzdCBJbWFnZTwvdGV4dD4KPC9zdmc+';
+                testImg.className = 'w-24 h-24 object-cover rounded shadow border border-gray-200';
+                testImg.alt = 'Test Image';
+                previewDiv.appendChild(testImg);
+                console.log('Test image added to preview div');
+            } else {
+                console.error('Preview div not found!');
+            }
+        };
+
+        // Xử lý upload file OCR (global function)
+        function handleOcrFiles(files) {
+            console.log('=== handleOcrFiles called ===');
+            console.log('Files received:', files);
+            console.log('Files length:', files.length);
+            
+            const previewDiv = document.getElementById('auto-quiz-preview');
+            const startBtn = document.getElementById('auto-quiz-start-btn');
+            
+            console.log('Preview div found:', !!previewDiv);
+            console.log('Start button found:', !!startBtn);
+            
+            if (!previewDiv || !startBtn) {
+                console.error('Không tìm thấy preview div hoặc start button');
+                return;
+            }
+            
+            ocrImages = [];
+            previewDiv.innerHTML = '';
+            startBtn.disabled = true;
+            
+            console.log('Handling OCR files:', files.length, 'files');
+            
+            Array.from(files).forEach(function(file) {
+                if (!file.type.startsWith('image/')) {
+                    console.log('Skipping non-image file:', file.name);
+                    return;
+                }
+                
+                console.log('Processing image file:', file.name);
+                
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    const imageData = e.target.result;
+                    const imageIndex = ocrImages.length;
+                    ocrImages.push({ name: file.name, data: imageData });
+                    
+                    console.log('Image loaded:', file.name, 'Total images:', ocrImages.length);
+                    
+                    // Tạo container cho ảnh với đầy đủ chức năng
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'relative inline-block m-2';
+                    
+                    const img = document.createElement('img');
+                    img.src = imageData;
+                    img.alt = file.name;
+                    img.className = 'w-24 h-24 object-cover rounded shadow border border-gray-200 cursor-pointer hover:opacity-80 transition-opacity';
+                    img.onclick = function() { openOcrImageModal(imageData, file.name); };
+                    
+                    // Nút xóa ảnh (dấu X)
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors z-10';
+                    deleteBtn.innerHTML = '×';
+                    deleteBtn.title = 'Xóa ảnh';
+                    deleteBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        ocrImages.splice(imageIndex, 1);
+                        imgContainer.remove();
+                        updateOcrButtonState();
+                    };
+                    
+                    // Nút chọn ảnh (dấu tick)
+                    const selectBtn = document.createElement('button');
+                    selectBtn.className = 'absolute -top-2 -left-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-green-600 transition-colors z-10';
+                    selectBtn.innerHTML = '✓';
+                    selectBtn.title = 'Chọn ảnh';
+                    selectBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        imgContainer.classList.toggle('ring-4', 'ring-green-500');
+                        selectBtn.classList.toggle('bg-green-500', 'bg-gray-500');
+                        selectBtn.classList.toggle('bg-gray-500', 'bg-green-500');
+                    };
+                    
+                    // Nút phóng to ảnh
+                    const zoomBtn = document.createElement('button');
+                    zoomBtn.className = 'absolute bottom-1 right-1 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs hover:bg-opacity-80 transition-colors';
+                    zoomBtn.innerHTML = '🔍';
+                    zoomBtn.title = 'Phóng to ảnh';
+                    zoomBtn.onclick = function(e) {
+                        e.stopPropagation();
+                        openOcrImageModal(imageData, file.name);
+                    };
+                    
+                    imgContainer.appendChild(img);
+                    imgContainer.appendChild(deleteBtn);
+                    imgContainer.appendChild(selectBtn);
+                    imgContainer.appendChild(zoomBtn);
+                    previewDiv.appendChild(imgContainer);
+                    
+                    updateOcrButtonState();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Function cập nhật trạng thái nút OCR (global)
+        function updateOcrButtonState() {
+            const startBtn = document.getElementById('auto-quiz-start-btn');
+            if (!startBtn) return;
+            
+            if (ocrImages.length > 0) {
+                startBtn.disabled = false;
+                startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                startBtn.disabled = true;
+                startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // Khởi tạo chức năng OCR
+        function initializeOcrFunction() {
+            console.log('=== initializeOcrFunction called ===');
+            
+            const dropzone = document.getElementById('auto-quiz-dropzone');
+            const fileInput = document.getElementById('auto-quiz-image-input');
+            const previewDiv = document.getElementById('auto-quiz-preview');
+            const startBtn = document.getElementById('auto-quiz-start-btn');
+            
+            console.log('Elements found:', {
+                dropzone: !!dropzone,
+                fileInput: !!fileInput,
+                previewDiv: !!previewDiv,
+                startBtn: !!startBtn
+            });
+            
+            if (!dropzone || !fileInput || !previewDiv || !startBtn) {
+                console.error('Không tìm thấy các element cần thiết cho OCR');
+                return;
+            }
+
+            // Xóa tất cả event listeners cũ để tránh duplicate
+            const newDropzone = dropzone.cloneNode(true);
+            dropzone.parentNode.replaceChild(newDropzone, dropzone);
+            
+            // Thêm event listeners mới
+            newDropzone.addEventListener('click', function(e) { 
+                console.log('Dropzone clicked');
+                e.preventDefault();
+                fileInput.click(); 
+            });
+            newDropzone.addEventListener('dragover', function(e) { 
+                e.preventDefault(); 
+                newDropzone.classList.add('bg-blue-100'); 
+            });
+            newDropzone.addEventListener('dragleave', function(e) { 
+                e.preventDefault(); 
+                newDropzone.classList.remove('bg-blue-100'); 
+            });
+            newDropzone.addEventListener('drop', function(e) {
+                console.log('Files dropped:', e.dataTransfer.files);
+                e.preventDefault();
+                newDropzone.classList.remove('bg-blue-100');
+                handleOcrFiles(e.dataTransfer.files);
+            });
+            
+            // Xóa event listener cũ của fileInput
+            const newFileInput = fileInput.cloneNode(true);
+            fileInput.parentNode.replaceChild(newFileInput, fileInput);
+            newFileInput.addEventListener('change', function(e) { 
+                console.log('File input changed:', e.target.files);
+                handleOcrFiles(e.target.files); 
+            });
+
+            // Xử lý nút bắt đầu OCR
+            startBtn.addEventListener('click', async function() {
+                console.log('OCR Images count:', ocrImages.length);
+                console.log('OCR Images:', ocrImages);
+                
+                if (ocrImages.length === 0) {
+                    alert('Vui lòng chọn ít nhất một ảnh!');
+                    return;
+                }
+
+                startBtn.disabled = true;
+                startBtn.textContent = 'Đang xử lý OCR...';
+                
+                const ocrResultDiv = document.getElementById('auto-quiz-ocr-result');
+                ocrResultDiv.classList.add('hidden');
+                
+                let extractedQuestions = [];
+                let processedCount = 0;
+
+                for (let i = 0; i < ocrImages.length; i++) {
+                    const img = ocrImages[i];
+                    const apiKey = getNextGeminiApiKey();
+                    
+                    try {
+                        startBtn.textContent = `Đang xử lý ảnh ${i + 1}/${ocrImages.length}...`;
+                        
+                        // Sử dụng Gemini API với fallback
+                        const requestBody = {
+                            contents: [{
+                                parts: [
+                                    {
+                                        text: `Hãy nhận diện văn bản trong ảnh này và trích xuất câu hỏi trắc nghiệm. Chỉ trả về JSON theo format:
+
+{
+  "ocr_text": "Toàn bộ văn bản được nhận diện",
+  "question": "Câu hỏi chính",
+  "options": {
+    "A": "Lựa chọn A",
+    "B": "Lựa chọn B", 
+    "C": "Lựa chọn C",
+    "D": "Lựa chọn D"
+  }
+}
+
+Chỉ trả về JSON, không có text khác.`
+                                    },
+                                    {
+                                        inline_data: {
+                                            mime_type: img.data.startsWith('data:image/jpeg') ? "image/jpeg" : 
+                                                       img.data.startsWith('data:image/png') ? "image/png" : 
+                                                       img.data.startsWith('data:image/gif') ? "image/gif" : 
+                                                       img.data.startsWith('data:image/webp') ? "image/webp" : "image/jpeg",
+                                            data: img.data.split(',')[1]
+                                        }
+                                    }
+                                ]
+                            }]
+                        };
+
+                        let response;
+                        try {
+                            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(requestBody)
+                            });
+                        } catch (error) {
+                            // Fallback to gemini-pro-vision
+                            response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${apiKey}`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(requestBody)
+                            });
+                        }
+
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            console.error('API Error:', response.status, errorText);
+                            throw new Error(`HTTP ${response.status}: ${errorText}`);
+                        }
+
+                        const data = await response.json();
+                        
+                        if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                            const text = data.candidates[0].content.parts[0].text;
+                            
+                            try {
+                                const jsonMatch = text.match(/\{[\s\S]*\}/);
+                                if (jsonMatch) {
+                                    const parsedData = JSON.parse(jsonMatch[0]);
+                                    if (parsedData.question) {
+                                        extractedQuestions.push({
+                                            imageName: img.name,
+                                            ...parsedData
+                                        });
+                                    }
+                                }
+                            } catch (parseError) {
+                                console.log('Lỗi parse JSON:', parseError);
+                            }
+                        }
+                        
+                        processedCount++;
+                        
+                    } catch (error) {
+                        console.error('Lỗi xử lý ảnh:', error);
+                    }
+                }
+
+                // Hiển thị kết quả
+                if (extractedQuestions.length > 0) {
+                    const resultHtml = extractedQuestions.map((item, index) => `
+                        <div class="border border-gray-200 rounded-lg p-4 mb-4">
+                            <div class="flex justify-between items-start mb-3">
+                                <h4 class="font-semibold text-gray-800">Câu hỏi ${index + 1} (từ ảnh: ${item.imageName})</h4>
+                                <div class="flex space-x-2">
+                                    <select onchange="setCorrectAnswer(${index}, this.value)" class="px-2 py-1 border rounded text-sm">
+                                        <option value="">Chọn đáp án đúng</option>
+                                        <option value="A">A</option>
+                                        <option value="B">B</option>
+                                        <option value="C">C</option>
+                                        <option value="D">D</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div>
+                                    <span class="font-bold text-gray-700">Câu hỏi:</span>
+                                    <p class="text-gray-600 text-sm mt-1">${item.question || 'Không có câu hỏi'}</p>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-gray-700">Các lựa chọn:</span>
+                                    <div class="grid grid-cols-2 gap-2 text-sm mt-1">
+                                        <div>A. ${item.options?.A || 'Không có'}</div>
+                                        <div>B. ${item.options?.B || 'Không có'}</div>
+                                        <div>C. ${item.options?.C || 'Không có'}</div>
+                                        <div>D. ${item.options?.D || 'Không có'}</div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="font-bold text-gray-700">Văn bản OCR:</span>
+                                    <p class="text-gray-600 text-sm mt-1">${item.ocr_text || 'Không có văn bản'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('') + `
+                        <div class="text-center mt-4">
+                            <button onclick="saveOcrQuestions()" class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-semibold">
+                                💾 Lưu tất cả câu hỏi
+                            </button>
+                        </div>
+                    `;
+                    ocrResultDiv.innerHTML = resultHtml;
+                } else {
+                    ocrResultDiv.innerHTML = `
+                        <div class="text-center py-8">
+                            <p class="text-red-700">Không thể trích xuất câu hỏi từ ảnh. Vui lòng thử lại với ảnh khác.</p>
+                        </div>
+                    `;
+                }
+                
+                ocrResultDiv.classList.remove('hidden');
+                startBtn.disabled = false;
+                startBtn.textContent = 'Bắt đầu OCR & trích xuất câu hỏi';
+                
+                // Lưu kết quả để sử dụng sau
+                window.ocrResults = extractedQuestions;
+            });
+            
+            console.log('OCR function initialized successfully');
+            console.log('Event listeners attached to dropzone and fileInput');
+        }
+
+        // Hàm set đáp án đúng
+        window.setCorrectAnswer = function(index, answer) {
+            if (window.ocrResults && window.ocrResults[index]) {
+                window.ocrResults[index].correctAnswer = answer;
+                console.log(`Đã set đáp án đúng cho câu ${index + 1}: ${answer}`);
+            }
+        };
+
+        // Modal phóng to ảnh OCR
+        window.openOcrImageModal = function(imageSrc, imageName) {
+            const modalHtml = `
+                <div id="ocr-image-modal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+                    <div class="relative max-w-4xl max-h-full p-4">
+                        <div class="bg-white rounded-lg overflow-hidden">
+                            <div class="flex justify-between items-center p-4 border-b">
+                                <h3 class="text-lg font-bold">${imageName}</h3>
+                                <button onclick="closeOcrImageModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                            </div>
+                            <div class="p-4">
+                                <img src="${imageSrc}" alt="${imageName}" class="max-w-full max-h-96 object-contain mx-auto">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Xóa modal cũ nếu có
+            const oldModal = document.getElementById('ocr-image-modal');
+            if (oldModal) oldModal.remove();
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        };
+
+        window.closeOcrImageModal = function() {
+            const modal = document.getElementById('ocr-image-modal');
+            if (modal) modal.remove();
+        };
+
+        // Hàm lưu câu hỏi OCR
+        window.saveOcrQuestions = async function() {
+            if (!window.ocrResults || window.ocrResults.length === 0) {
+                alert('Không có câu hỏi nào để lưu!');
+                return;
+            }
+
+            const subjectId = prompt('Nhập ID môn học:');
+            if (!subjectId) return;
+
+            const questionSetId = prompt('Nhập ID bộ đề:');
+            if (!questionSetId) return;
+
+            try {
+                const { addDoc, collection } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js');
+                
+                let savedCount = 0;
+                for (const question of window.ocrResults) {
+                    try {
+                        await addDoc(collection(window.db, 'questions'), {
+                            subjectId: subjectId,
+                            questionSetId: questionSetId,
+                            question: question.question,
+                            options: question.options,
+                            correctAnswer: question.correctAnswer || 'A',
+                            explanation: `OCR từ ảnh: ${question.imageName}`,
+                            createdAt: new Date(),
+                            createdBy: 'ocr-extracted'
+                        });
+                        savedCount++;
+                    } catch (error) {
+                        console.error('Lỗi lưu câu hỏi:', error);
+                    }
+                }
+
+                alert(`✅ Đã lưu thành công ${savedCount}/${window.ocrResults.length} câu hỏi!`);
+                
+            } catch (error) {
+                console.error('Lỗi:', error);
+                alert('❌ Có lỗi xảy ra: ' + error.message);
+            }
+        };
 
         // Admin Tab Management
         window.showAdminTab = function(tab) {
@@ -760,52 +1272,38 @@
             document.getElementById('admin-tab-' + tab).classList.remove('hidden');
             document.getElementById('tab-' + tab).classList.add('border-b-2', 'border-blue-500', 'text-blue-600', 'font-semibold');
 
-            if (tab === 'auto-quiz' && !autoQuizDropzoneEventsBound) {
-                // Gán sự kiện cho dropzone và input file khi tab auto-quiz được mở lần đầu
-                const dropzone = document.getElementById('auto-quiz-dropzone');
-                const fileInput = document.getElementById('auto-quiz-image-input');
-                const previewDiv = document.getElementById('auto-quiz-preview');
-                const startBtn = document.getElementById('auto-quiz-start-btn');
-                if (dropzone && fileInput && previewDiv && startBtn) {
-                    dropzone.addEventListener('click', function() { fileInput.click(); });
-                    dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('bg-blue-100'); });
-                    dropzone.addEventListener('dragleave', function(e) { e.preventDefault(); dropzone.classList.remove('bg-blue-100'); });
-                    dropzone.addEventListener('drop', function(e) {
-                        e.preventDefault();
-                        dropzone.classList.remove('bg-blue-100');
-                        handleFiles(e.dataTransfer.files);
-                    });
-                    fileInput.addEventListener('change', function(e) { handleFiles(e.target.files); });
-                    autoQuizDropzoneEventsBound = true;
-                }
+            if (tab === 'auto-quiz') {
+                // Khởi tạo lại OCR function khi chuyển đến tab OCR
+                setTimeout(() => {
+                    initializeOcrFunction();
+                    console.log('OCR function re-initialized for auto-quiz tab');
+                }, 100);
             }
             
             // Load data for specific tabs
             if (tab === 'subjects') {
                 loadSubjects();
             } else if (tab === 'questions') {
-                loadSubjectsDropdownForSelection();
-                resetQuestionForm();
+                loadSubjectsDropdown();
             } else if (tab === 'settings') {
                 loadAdminApiKeys();
             } else if (tab === 'users') {
                 loadUserStatistics();
             } else if (tab === 'auto-quiz') {
-                // Load auto quiz data - placeholder for now
-                // loadAutoQuizData(); // Function will be implemented if needed
+                // Load auto quiz data
+                loadAutoQuizData();
+                // Khởi tạo hiển thị API key
+                setTimeout(initializeApiKeyDisplay, 100);
             }
         };
 
-        // Question Management (Old system - keep for backward compatibility)
+        // Question Management
         window.addQuestion = async function(event) {
             event.preventDefault();
             
-            const subjectId = document.getElementById('question-subject')?.value;
-            const questionSetId = document.getElementById('question-set')?.value;
-            const imageFile = document.getElementById('question-image-input')?.files[0];
-            
-            // This is the old single question add function - rarely used now
-            // Most admin will use the new batch system
+            const subjectId = document.getElementById('question-subject').value;
+            const questionSetId = document.getElementById('question-set').value;
+            const imageFile = document.getElementById('question-image-input').files[0];
             
             if (!subjectId || !questionSetId) {
                 alert('Vui lòng chọn môn học và bộ đề');
@@ -836,9 +1334,28 @@
                 };
 
                 try {
+                    // Save to Firebase
                     await addDoc(collection(window.db, 'questions'), question);
+                    
+                    // Refresh question list
                     await loadAdminQuestions();
                     await loadAdminStats();
+                    
+                    // Reset form but keep subject and question set selection
+                    const form = document.querySelector('#admin-tab-questions form');
+                    const subjectValue = document.getElementById('question-subject').value;
+                    const questionSetValue = document.getElementById('question-set').value;
+                    
+                    form.reset();
+                    
+                    // Restore selections
+                    document.getElementById('question-subject').value = subjectValue;
+                    if (subjectValue) {
+                        await loadQuestionSets(); // Reload question sets for the subject
+                        document.getElementById('question-set').value = questionSetValue;
+                    }
+                    
+                    document.getElementById('image-preview').classList.add('hidden');
                     
                     alert('Thêm câu hỏi thành công!');
                 } catch (error) {
@@ -941,6 +1458,8 @@
                 // Find subject and question set names
                 const subject = subjects.find(s => s.id === question.subjectId);
                 const questionSet = questionSets.find(qs => qs.id === question.questionSetId);
+                // Escape dấu nháy đơn trong src để tránh lỗi khi truyền vào onclick
+                const safeImgSrc = question.image ? question.image.replace(/'/g, "&#39;") : '';
                 
                 return `
                     <div class="border border-gray-200 rounded-lg p-4">
@@ -948,8 +1467,8 @@
                             <div class="flex-1">
                                 <div class="flex items-center space-x-4 mb-3">
                                     <div class="relative">
-                                        <img src="${question.image}" alt="Question ${index + 1}" class="w-20 h-20 object-cover rounded-lg cursor-pointer" onclick="openAdminImageModal('${question.image}')">
-                                        <button onclick="openAdminImageModal('${question.image}')" class="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">🔍</button>
+                                        <img src="${question.image}" alt="Question ${index + 1}" class="w-20 h-20 object-cover rounded-lg cursor-pointer" onclick="openAdminImageModal('${safeImgSrc}')">
+                                        <button type="button" onclick="openAdminImageModal('${safeImgSrc}')" class="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">🔍</button>
                                     </div>
                                     <div>
                                         <h4 class="font-semibold text-gray-800">Câu ${index + 1}</h4>
@@ -959,11 +1478,10 @@
                                     </div>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 text-sm">
-                                    ${Object.entries(question.answers || {}).map(([key, value]) => {
-                                        // Skip empty answers
-                                        if (!value || !value.trim()) return '';
-                                        return `<div>${key}. ${value}</div>`;
-                                    }).filter(html => html !== '').join('')}
+                                    <div>A. ${question.answers.A}</div>
+                                    <div>B. ${question.answers.B}</div>
+                                    <div>C. ${question.answers.C}</div>
+                                    <div>D. ${question.answers.D}</div>
                                 </div>
                             </div>
                             <div class="flex flex-col space-y-2 ml-4">
@@ -977,7 +1495,7 @@
         }
 
         // Filter functions
-        function loadFilterSubjects() {
+        window.loadFilterSubjects = function() {
             const filterSubject = document.getElementById('filter-subject');
             if (!filterSubject) return;
             
@@ -1525,25 +2043,10 @@
             document.getElementById('user-question-image').src = question.image;
             document.getElementById('user-question-text').textContent = question.content || '';
 
-            // Clear existing answer options
-            const answerContainer = document.querySelector('#user-question-content .grid');
-            answerContainer.innerHTML = '';
-
-            // Create answer options dynamically based on available answers
-            const availableAnswers = Object.keys(question.answers).sort();
-            
-            availableAnswers.forEach(letter => {
-                const answerValue = question.answers[letter];
-                if (answerValue && answerValue.trim()) {
-                    const answerButton = document.createElement('button');
-                    answerButton.id = `user-option-${letter}`;
-                    answerButton.onclick = () => userSelectAnswer(letter);
-                    answerButton.className = 'user-answer-btn p-4 text-left border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all';
-                    answerButton.innerHTML = `<span class="font-bold text-blue-600">${letter}. </span><span class="answer-text">${answerValue}</span>`;
-                    
-                    answerContainer.appendChild(answerButton);
-                }
-            });
+            document.getElementById('user-option-A').querySelector('.answer-text').textContent = question.answers.A;
+            document.getElementById('user-option-B').querySelector('.answer-text').textContent = question.answers.B;
+            document.getElementById('user-option-C').querySelector('.answer-text').textContent = question.answers.C;
+            document.getElementById('user-option-D').querySelector('.answer-text').textContent = question.answers.D;
 
             resetUserAnswerButtons();
             document.getElementById('user-ai-explanation').classList.add('hidden');
@@ -1563,12 +2066,6 @@
             const question = questions[currentQuestionIndex];
             const isCorrect = answer === question.correctAnswer;
 
-            // ✅ FIX 1: Tăng điểm khi trả lời đúng
-            if (isCorrect) {
-                userScore++;
-                document.getElementById('user-score').textContent = userScore;
-            }
-
             document.querySelectorAll('.user-answer-btn').forEach(btn => {
                 btn.classList.add('pointer-events-none');
                 if (btn.id === `user-option-${answer}`) {
@@ -1580,40 +2077,16 @@
                 }
             });
 
-            // Luôn hiện giải thích AI dù đúng hay sai
-            getUserAIExplanation(question, answer);
+            // Chỉ hiện giải thích AI khi đáp án sai
+            if (!isCorrect) {
+                getUserAIExplanation(question, answer);
+            } else {
+                // Nếu đáp án đúng, chỉ hiện nút tiếp theo
+                setTimeout(() => {
+                    document.getElementById('user-next-btn').classList.remove('hidden');
+                }, 1000);
+            }
         };
-
-        // ✅ FIX 2: Function to convert Gemini markdown to HTML
-        function formatGeminiText(text) {
-            if (!text) return text;
-            
-            // First, handle headers
-            text = text.replace(/^##\s+(.*?)$/gm, '<h3 class="font-bold text-lg mt-4 mb-2 text-blue-800">$1</h3>');
-            text = text.replace(/^###\s+(.*?)$/gm, '<h4 class="font-semibold text-base mt-3 mb-2 text-blue-700">$1</h4>');
-            
-            // Handle bullet points FIRST (before processing ** and *)
-            // This covers *, -, •, and even ** at start of line as bullet points
-            text = text.replace(/^[\*]{1,2}[\-•]?\s+(.*?)$/gm, '<div class="ml-4 mb-1">• $1</div>');
-            text = text.replace(/^[\-•]\s+(.*?)$/gm, '<div class="ml-4 mb-1">• $1</div>');
-            
-            // Handle numbered lists
-            text = text.replace(/^\d+\.\s+(.*?)$/gm, '<div class="ml-4 mb-1">$&</div>');
-            
-            // Now handle bold text (**text**) - anywhere in text
-            text = text.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-blue-900">$1</strong>');
-            
-            // Handle italic text (*text*) - but NOT at start of line (already handled as bullets)
-            text = text.replace(/(?<!^|\n)\*(.*?)\*/g, '<em class="italic text-gray-700">$1</em>');
-            
-            // Clean up any remaining standalone * or ** at start of lines that weren't caught
-            text = text.replace(/^[\*]{1,2}\s*$/gm, '');
-            
-            // Convert line breaks to <br>
-            text = text.replace(/\n/g, '<br>');
-            
-            return text;
-        }
 
         async function getUserAIExplanation(question, selectedAnswer) {
             const explanationDiv = document.getElementById('user-ai-explanation');
@@ -1643,14 +2116,9 @@
                     mainExplain = explanation.slice(0, summaryMatch.index).trim();
                     summary = summaryMatch[2].trim();
                 }
-                
-                // ✅ FIX 2: Format markdown text to HTML
-                const formattedExplanation = formatGeminiText(mainExplain);
-                explanationText.innerHTML = `<span class="font-bold text-red-600">🤖 AI Giải thích:</span> <span>${formattedExplanation}</span>`;
-                
+                explanationText.innerHTML = `<span class="font-bold text-red-600">🤖 AI Giải thích:</span> <span>${mainExplain.replace(/\n/g, '<br>')}</span>`;
                 if (summary) {
-                    const formattedSummary = formatGeminiText(summary);
-                    summaryDiv.innerHTML = `<span class="font-bold">📝 Nội dung thêm:</span> <span>${formattedSummary}</span>`;
+                    summaryDiv.innerHTML = `<span class="font-bold">📝 Nội dung thêm:</span> <span>${summary.replace(/\n/g, '<br>')}</span>`;
                     summaryDiv.classList.remove('hidden');
                 }
             } catch (error) {
@@ -1744,13 +2212,9 @@ Yêu cầu:
             
             const completionTime = Math.floor((Date.now() - quizStartTime) / 1000);
             
-            // ✅ FIX 3: Tính điểm theo thang 10
-            const scoreOutOf10 = Math.round((userScore / questions.length) * 10 * 100) / 100; // Làm tròn 2 chữ số thập phân
-            const percentage = Math.round((userScore / questions.length) * 100);
-            
             document.getElementById('user-question-content').classList.add('hidden');
             document.getElementById('user-quiz-complete').classList.remove('hidden');
-            document.getElementById('user-final-score').textContent = `${userScore}/${questions.length} (${scoreOutOf10}/10 điểm - ${percentage}%)`;
+            document.getElementById('user-final-score').textContent = `${userScore}/${questions.length}`;
             document.getElementById('user-final-time').textContent = formatTime(completionTime);
             
             // Save session to Firebase - Always create new session
@@ -1763,8 +2227,7 @@ Yêu cầu:
                     completedAt: new Date(),
                     questionSetId: currentQuestionSetId,
                     sessionId: Date.now().toString(), // Unique session ID
-                    percentage: percentage,
-                    scoreOutOf10: scoreOutOf10 // ✅ Thêm điểm theo thang 10
+                    percentage: Math.round((userScore / questions.length) * 100)
                 };
                 
                 // Create custom document ID with username + timestamp for easier management
@@ -1783,8 +2246,7 @@ Yêu cầu:
                     completedAt: new Date().toISOString(),
                     questionSetId: currentQuestionSetId,
                     sessionId: Date.now().toString(),
-                    percentage: Math.round((userScore / questions.length) * 100),
-                    scoreOutOf10: Math.round((userScore / questions.length) * 10 * 100) / 100 // ✅ Backup cũng có điểm /10
+                    percentage: Math.round((userScore / questions.length) * 100)
                 });
                 localStorage.setItem('userSessions', JSON.stringify(existingSessions));
             }
@@ -1847,463 +2309,7 @@ Yêu cầu:
             }
         }
 
-        // ================== NEW QUESTION MANAGEMENT SYSTEM ==================
-        
-        // Step 1: Load subjects for selection
-        async function loadSubjectsDropdownForSelection() {
-            try {
-                const subjectsSnapshot = await getDocs(collection(window.db, 'subjects'));
-                subjects = [];
-                subjectsSnapshot.forEach((doc) => {
-                    subjects.push({ id: doc.id, ...doc.data() });
-                });
-                
-                const subjectSelect = document.getElementById('select-question-subject');
-                subjectSelect.innerHTML = '<option value="">Chọn môn học</option>';
-                subjects.forEach(subject => {
-                    subjectSelect.innerHTML += `<option value="${subject.id}">${subject.name}</option>`;
-                });
-            } catch (error) {
-                console.error('Error loading subjects dropdown:', error);
-            }
-        }
-
-        // Step 1: Load question sets for selected subject
-        window.loadQuestionSetsForSelection = async function() {
-            const subjectId = document.getElementById('select-question-subject').value;
-            if (!subjectId) return;
-            
-            try {
-                const questionSetsSnapshot = await getDocs(collection(window.db, 'questionSets'));
-                const subjectQuestionSets = [];
-                questionSetsSnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    if (data.subjectId === subjectId) {
-                        subjectQuestionSets.push({ id: doc.id, ...data });
-                    }
-                });
-                
-                const questionSetSelect = document.getElementById('select-question-set');
-                questionSetSelect.innerHTML = '<option value="">Chọn bộ đề</option>';
-                subjectQuestionSets.forEach(qs => {
-                    questionSetSelect.innerHTML += `<option value="${qs.id}">${qs.name}</option>`;
-                });
-            } catch (error) {
-                console.error('Error loading question sets:', error);
-            }
-        };
-
-        // Step 1: Proceed to question form
-        window.proceedToQuestionForm = function() {
-            const subjectId = document.getElementById('select-question-subject').value;
-            const questionSetId = document.getElementById('select-question-set').value;
-            
-            if (!subjectId || !questionSetId) {
-                alert('Vui lòng chọn đầy đủ môn học và bộ đề');
-                return;
-            }
-            
-            // Store selected IDs
-            currentSubjectId = subjectId;
-            currentQuestionSetId = questionSetId;
-            
-            // Display selected info
-            const selectedSubject = subjects.find(s => s.id === subjectId);
-            const selectedQuestionSet = questionSets.find(qs => qs.id === questionSetId);
-            
-            document.getElementById('selected-info').innerHTML = `
-                <p><strong>📚 Môn học:</strong> ${selectedSubject?.name || 'Không xác định'}</p>
-                <p><strong>📋 Bộ đề:</strong> ${selectedQuestionSet?.name || 'Không xác định'}</p>
-            `;
-            
-            // Hide selection step, show form step
-            document.getElementById('question-select-step').classList.add('hidden');
-            document.getElementById('question-form-step').classList.remove('hidden');
-            
-            // Initialize with first question block
-            questionsToSubmit = [];
-            questionBlockCounter = 0;
-            document.getElementById('questions-container').innerHTML = '';
-            addNewQuestionBlock();
-        };
-
-        // Step 2: Back to selection
-        window.backToSelection = function() {
-            document.getElementById('question-form-step').classList.add('hidden');
-            document.getElementById('question-select-step').classList.remove('hidden');
-            
-            // Reset form data
-            questionsToSubmit = [];
-            questionBlockCounter = 0;
-            document.getElementById('questions-container').innerHTML = '';
-            updateQuestionCount();
-        };
-
-        // Step 2: Add new question block
-        window.addNewQuestionBlock = function() {
-            questionBlockCounter++;
-            const questionId = `question-${questionBlockCounter}`;
-            
-            const questionHTML = `
-                <div class="question-block bg-white rounded-lg shadow-md p-6 border border-gray-200" data-question-id="${questionId}">
-                    <div class="flex justify-between items-center mb-4">
-                        <h4 class="text-lg font-semibold text-gray-800">📝 Câu hỏi ${questionBlockCounter}</h4>
-                        <button onclick="removeQuestionBlock('${questionId}')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm">
-                            🗑️ Xóa câu hỏi này
-                        </button>
-                    </div>
-                    
-                    <div class="space-y-4">
-                        <!-- Image Upload -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Hình ảnh câu hỏi:</label>
-                            <input type="file" id="${questionId}-image" accept="image/*" onchange="previewQuestionImage('${questionId}')"
-                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                            <div id="${questionId}-image-preview" class="mt-4 text-center hidden">
-                                <img id="${questionId}-preview-img" src="" alt="Preview" class="max-w-xs max-h-48 mx-auto rounded-lg shadow-md">
-                            </div>
-                        </div>
-                        
-                        <!-- Question Content -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Nội dung câu hỏi (tùy chọn):</label>
-                            <textarea id="${questionId}-content" rows="3" placeholder="Nhập nội dung câu hỏi nếu cần bổ sung..." 
-                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"></textarea>
-                        </div>
-
-                        <!-- Answer Options -->
-                        <div id="${questionId}-answers" class="space-y-3">
-                            <h5 class="font-medium text-gray-700">Các đáp án:</h5>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="answer-option">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Đáp án A:</label>
-                                    <input type="text" id="${questionId}-answer-A" placeholder="Nhập đáp án A" 
-                                           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                </div>
-                                <div class="answer-option">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Đáp án B:</label>
-                                    <input type="text" id="${questionId}-answer-B" placeholder="Nhập đáp án B" 
-                                           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                </div>
-                                <div class="answer-option">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Đáp án C:</label>
-                                    <input type="text" id="${questionId}-answer-C" placeholder="Nhập đáp án C" 
-                                           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                </div>
-                                <div class="answer-option">
-                                    <label class="block text-sm font-medium text-gray-700 mb-1">Đáp án D:</label>
-                                    <input type="text" id="${questionId}-answer-D" placeholder="Nhập đáp án D" 
-                                           class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                </div>
-                            </div>
-                            
-                            <!-- Add More Options Button -->
-                            <div class="text-center mt-3">
-                                <button onclick="addMoreOption('${questionId}')" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm">
-                                    ➕ Thêm đáp án (E, F, G...)
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Correct Answer Selection -->
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Đáp án đúng:</label>
-                            <select id="${questionId}-correct" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                                <option value="">Chọn đáp án đúng</option>
-                                <option value="A">A</option>
-                                <option value="B">B</option>
-                                <option value="C">C</option>
-                                <option value="D">D</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Validate Question Button -->
-                        <div class="bg-gray-50 rounded-lg p-3">
-                            <button onclick="validateQuestion('${questionId}')" class="w-full py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium">
-                                ✅ Kiểm tra câu hỏi này
-                            </button>
-                            <div id="${questionId}-validation" class="mt-2 text-sm"></div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.getElementById('questions-container').insertAdjacentHTML('beforeend', questionHTML);
-            updateQuestionCount();
-        };
-
-        // Preview image for each question
-        window.previewQuestionImage = function(questionId) {
-            const fileInput = document.getElementById(`${questionId}-image`);
-            const preview = document.getElementById(`${questionId}-image-preview`);
-            const previewImg = document.getElementById(`${questionId}-preview-img`);
-            
-            const file = fileInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.src = e.target.result;
-                    preview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        };
-
-        // Add more options (E, F, G, etc.)
-        window.addMoreOption = function(questionId) {
-            const answersContainer = document.getElementById(`${questionId}-answers`);
-            const existingOptions = answersContainer.querySelectorAll('.answer-option');
-            const nextLetter = String.fromCharCode(65 + existingOptions.length); // A=65, B=66, etc.
-            
-            if (existingOptions.length >= 8) { // Maximum 8 options (A-H)
-                alert('Tối đa 8 đáp án (A-H)');
-                return;
-            }
-            
-            const newOptionHTML = `
-                <div class="answer-option">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Đáp án ${nextLetter}:</label>
-                    <div class="flex space-x-2">
-                        <input type="text" id="${questionId}-answer-${nextLetter}" placeholder="Nhập đáp án ${nextLetter}" 
-                               class="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                        <button onclick="removeOption('${questionId}', '${nextLetter}')" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors text-sm">
-                            🗑️
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            // Insert before the "Add More Options" button
-            const addButton = answersContainer.querySelector('.text-center');
-            addButton.insertAdjacentHTML('beforebegin', newOptionHTML);
-            
-            // Update correct answer dropdown
-            const correctSelect = document.getElementById(`${questionId}-correct`);
-            correctSelect.innerHTML += `<option value="${nextLetter}">${nextLetter}</option>`;
-        };
-
-        // Remove option
-        window.removeOption = function(questionId, letter) {
-            if (['A', 'B', 'C', 'D'].includes(letter)) {
-                alert('Không thể xóa 4 đáp án cơ bản A, B, C, D');
-                return;
-            }
-            
-            // Remove the option element
-            const optionElement = document.getElementById(`${questionId}-answer-${letter}`).closest('.answer-option');
-            optionElement.remove();
-            
-            // Remove from correct answer dropdown
-            const correctSelect = document.getElementById(`${questionId}-correct`);
-            const optionToRemove = correctSelect.querySelector(`option[value="${letter}"]`);
-            if (optionToRemove) {
-                optionToRemove.remove();
-            }
-            
-            // Reset correct answer if it was the removed option
-            if (correctSelect.value === letter) {
-                correctSelect.value = '';
-            }
-        };
-
-        // Remove entire question block
-        window.removeQuestionBlock = function(questionId) {
-            if (!confirm('Bạn có chắc muốn xóa câu hỏi này?')) return;
-            
-            const questionBlock = document.querySelector(`[data-question-id="${questionId}"]`);
-            questionBlock.remove();
-            updateQuestionCount();
-        };
-
-        // Validate individual question
-        window.validateQuestion = function(questionId) {
-            const validationDiv = document.getElementById(`${questionId}-validation`);
-            const errors = [];
-            
-            // Check image
-            const imageInput = document.getElementById(`${questionId}-image`);
-            if (!imageInput.files[0]) {
-                errors.push('❌ Chưa chọn hình ảnh');
-            }
-            
-            // Check answers
-            const answerInputs = document.querySelectorAll(`[id^="${questionId}-answer-"]`);
-            let emptyAnswers = 0;
-            let validAnswers = 0;
-            
-            answerInputs.forEach(input => {
-                if (!input.value.trim()) {
-                    emptyAnswers++;
-                } else {
-                    validAnswers++;
-                }
-            });
-            
-            if (validAnswers < 2) {
-                errors.push('❌ Cần ít nhất 2 đáp án');
-            }
-            
-            // Check correct answer
-            const correctAnswer = document.getElementById(`${questionId}-correct`).value;
-            if (!correctAnswer) {
-                errors.push('❌ Chưa chọn đáp án đúng');
-            } else {
-                // Check if correct answer exists and has content
-                const correctInput = document.getElementById(`${questionId}-answer-${correctAnswer}`);
-                if (!correctInput || !correctInput.value.trim()) {
-                    errors.push('❌ Đáp án đúng được chọn nhưng chưa có nội dung');
-                }
-            }
-            
-            // Display validation result
-            if (errors.length === 0) {
-                validationDiv.innerHTML = '<p class="text-green-600 font-medium">✅ Câu hỏi hợp lệ, sẵn sàng gửi!</p>';
-                validationDiv.className = 'mt-2 text-sm p-2 bg-green-50 border border-green-200 rounded';
-            } else {
-                validationDiv.innerHTML = `<div class="text-red-600">${errors.join('<br>')}</div>`;
-                validationDiv.className = 'mt-2 text-sm p-2 bg-red-50 border border-red-200 rounded';
-            }
-            
-            return errors.length === 0;
-        };
-
-        // Update question count
-        function updateQuestionCount() {
-            const questionBlocks = document.querySelectorAll('.question-block');
-            document.getElementById('total-questions-count').textContent = questionBlocks.length;
-        }
-
-        // Reset question form
-        function resetQuestionForm() {
-            document.getElementById('question-form-step').classList.add('hidden');
-            document.getElementById('question-select-step').classList.remove('hidden');
-            
-            // Reset selections
-            document.getElementById('select-question-subject').value = '';
-            document.getElementById('select-question-set').innerHTML = '<option value="">Chọn bộ đề</option>';
-            
-            // Reset form data
-            questionsToSubmit = [];
-            questionBlockCounter = 0;
-            document.getElementById('questions-container').innerHTML = '';
-            updateQuestionCount();
-        }
-
-        // Step 3: Submit all questions
-        window.submitAllQuestions = async function() {
-            const questionBlocks = document.querySelectorAll('.question-block');
-            
-            if (questionBlocks.length === 0) {
-                alert('Chưa có câu hỏi nào để gửi!');
-                return;
-            }
-            
-            // Validate all questions first
-            let allValid = true;
-            const validationResults = [];
-            
-            questionBlocks.forEach((block) => {
-                const questionId = block.dataset.questionId;
-                const isValid = validateQuestion(questionId);
-                validationResults.push({ questionId, isValid });
-                if (!isValid) allValid = false;
-            });
-            
-            if (!allValid) {
-                alert('Vui lòng kiểm tra và sửa các lỗi trong câu hỏi trước khi gửi!');
-                return;
-            }
-            
-            // Confirm submission
-            if (!confirm(`Bạn có chắc muốn gửi ${questionBlocks.length} câu hỏi lên hệ thống?`)) {
-                return;
-            }
-            
-            // Prepare questions for submission
-            const questionsToSubmit = [];
-            
-            for (const block of questionBlocks) {
-                const questionId = block.dataset.questionId;
-                
-                // Get image as base64
-                const imageInput = document.getElementById(`${questionId}-image`);
-                const imageFile = imageInput.files[0];
-                
-                if (!imageFile) continue;
-                
-                const imageBase64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(imageFile);
-                });
-                
-                // Get all answers
-                const answerInputs = document.querySelectorAll(`[id^="${questionId}-answer-"]`);
-                const answers = {};
-                
-                answerInputs.forEach(input => {
-                    const letter = input.id.split('-answer-')[1];
-                    const value = input.value.trim();
-                    if (value) {
-                        answers[letter] = value;
-                    }
-                });
-                
-                const question = {
-                    subjectId: currentSubjectId,
-                    questionSetId: currentQuestionSetId,
-                    image: imageBase64,
-                    content: document.getElementById(`${questionId}-content`).value.trim(),
-                    answers: answers,
-                    correctAnswer: document.getElementById(`${questionId}-correct`).value,
-                    createdAt: new Date(),
-                    createdBy: currentUser
-                };
-                
-                questionsToSubmit.push(question);
-            }
-            
-            // Submit all questions to Firebase
-            const submitButton = document.querySelector('button[onclick="submitAllQuestions()"]');
-            submitButton.disabled = true;
-            submitButton.textContent = '📤 Đang gửi câu hỏi...';
-            
-            try {
-                let successCount = 0;
-                let errorCount = 0;
-                
-                for (const question of questionsToSubmit) {
-                    try {
-                        await addDoc(collection(window.db, 'questions'), question);
-                        successCount++;
-                    } catch (error) {
-                        console.error('Error adding question:', error);
-                        errorCount++;
-                    }
-                }
-                
-                // Show results
-                if (errorCount === 0) {
-                    alert(`🎉 Thành công! Đã thêm ${successCount} câu hỏi vào hệ thống.`);
-                } else {
-                    alert(`⚠️ Hoàn thành với một số lỗi:\n✅ Thành công: ${successCount} câu\n❌ Lỗi: ${errorCount} câu`);
-                }
-                
-                // Refresh data and reset form
-                await loadAdminQuestions();
-                await loadAdminStats();
-                resetQuestionForm();
-                
-            } catch (error) {
-                console.error('Error in batch submission:', error);
-                alert('❌ Có lỗi xảy ra khi gửi câu hỏi. Vui lòng thử lại!');
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = '📤 Gửi tất cả câu hỏi';
-            }
-        };
-
-        // ================== END NEW QUESTION MANAGEMENT SYSTEM ==================
+        // ================== NEW FEATURES ==================
         
         // Subject Management
         window.addSubject = async function(event) {
@@ -2492,21 +2498,18 @@ Yêu cầu:
                     subjects.push({ id: doc.id, ...doc.data() });
                 });
                 
-                // Load for old system if exists
                 const subjectSelect = document.getElementById('question-subject');
-                if (subjectSelect) {
-                    subjectSelect.innerHTML = '<option value="">Chọn môn học</option>';
-                    subjects.forEach(subject => {
-                        subjectSelect.innerHTML += `<option value="${subject.id}">${subject.name}</option>`;
-                    });
-                }
+                subjectSelect.innerHTML = '<option value="">Chọn môn học</option>';
+                subjects.forEach(subject => {
+                    subjectSelect.innerHTML += `<option value="${subject.id}">${subject.name}</option>`;
+                });
             } catch (error) {
                 console.error('Error loading subjects dropdown:', error);
             }
         }
 
         window.loadQuestionSets = async function() {
-            const subjectId = document.getElementById('question-subject')?.value;
+            const subjectId = document.getElementById('question-subject').value;
             if (!subjectId) return;
             
             try {
@@ -2520,12 +2523,10 @@ Yêu cầu:
                 });
                 
                 const questionSetSelect = document.getElementById('question-set');
-                if (questionSetSelect) {
-                    questionSetSelect.innerHTML = '<option value="">Chọn bộ đề</option>';
-                    subjectQuestionSets.forEach(qs => {
-                        questionSetSelect.innerHTML += `<option value="${qs.id}">${qs.name}</option>`;
-                    });
-                }
+                questionSetSelect.innerHTML = '<option value="">Chọn bộ đề</option>';
+                subjectQuestionSets.forEach(qs => {
+                    questionSetSelect.innerHTML += `<option value="${qs.id}">${qs.name}</option>`;
+                });
             } catch (error) {
                 console.error('Error loading question sets:', error);
             }
@@ -2681,10 +2682,7 @@ Yêu cầu:
                         ${question.content ? `<p class="text-gray-700 mb-4">${question.content}</p>` : ''}
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                            ${Object.entries(question.answers || {}).map(([key, value]) => {
-                                // Skip empty answers
-                                if (!value || !value.trim()) return '';
-                                
+                            ${Object.entries(question.answers).map(([key, value]) => {
                                 let bgClass = 'bg-gray-50 border-gray-200';
                                 let textClass = 'text-gray-700';
                                 let icon = '';
@@ -2704,7 +2702,7 @@ Yêu cầu:
                                         ${icon}${key}. ${value}
                                     </div>
                                 `;
-                            }).filter(html => html !== '').join('')}
+                            }).join('')}
                         </div>
                         
                         <div class="text-sm text-gray-600">
@@ -2742,9 +2740,7 @@ Yêu cầu:
             
             try {
                 const explanation = await callGeminiAPI(question, userAnswer);
-                // ✅ FIX 2: Apply formatting to review explanation too
-                const formattedExplanation = formatGeminiText(explanation);
-                explanationContent.innerHTML = `<p>${formattedExplanation}</p>`;
+                explanationContent.innerHTML = `<p>${explanation}</p>`;
             } catch (error) {
                 explanationContent.innerHTML = `
                     <p class="text-red-600">❌ Không thể lấy giải thích từ AI.</p>
@@ -2773,44 +2769,53 @@ Yêu cầu:
             editingQuestionId = null;
         };
 
-        // Trong hàm displayAdminQuestions, thêm nút phóng to và sửa:
-        questionsList.innerHTML = questionsToShow.map((question, index) => {
-            // Find subject and question set names
-            const subject = subjects.find(s => s.id === question.subjectId);
-            const questionSet = questionSets.find(qs => qs.id === question.questionSetId);
-            // Escape dấu nháy đơn trong src để tránh lỗi khi truyền vào onclick
-            const safeImgSrc = question.image.replace(/'/g, "&#39;");
-            return `
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-4 mb-3">
-                                <div class="relative">
-                                    <img src="${question.image}" alt="Question ${index + 1}" class="w-20 h-20 object-cover rounded-lg cursor-pointer" onclick="openAdminImageModal('${safeImgSrc}')">
-                                    <button type="button" onclick="openAdminImageModal('${safeImgSrc}')" class="absolute bottom-1 right-1 bg-black bg-opacity-60 text-white px-2 py-1 rounded text-xs">🔍</button>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-800">Câu ${index + 1}</h4>
-                                    <p class="text-sm text-blue-600 font-medium">📚 ${subject?.name || 'Chưa rõ môn'} - 📋 ${questionSet?.name || 'Chưa rõ bộ đề'}</p>
-                                    <p class="text-sm text-gray-600">${question.content || 'Câu hỏi từ hình ảnh'}</p>
-                                    <p class="text-sm text-green-600 font-medium">Đáp án: ${question.correctAnswer}</p>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2 text-sm">
-                                <div>A. ${question.answers.A}</div>
-                                <div>B. ${question.answers.B}</div>
-                                <div>C. ${question.answers.C}</div>
-                                <div>D. ${question.answers.D}</div>
-                            </div>
-                        </div>
-                        <div class="flex flex-col space-y-2 ml-4">
-                            <button onclick="editAdminQuestion('${question.id}')" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors">✏️ Sửa</button>
-                            <button onclick="deleteAdminQuestion('${question.id}')" class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors">🗑️ Xóa</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+        // Thêm event handler cho form edit question
+        document.addEventListener('DOMContentLoaded', function() {
+            const editForm = document.getElementById('edit-question-form');
+            if (editForm) {
+                editForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    saveEditQuestion();
+                });
+            }
+        });
+
+        window.saveEditQuestion = function() {
+            if (!editingQuestionId) return;
+            
+            const question = questions.find(q => q.id === editingQuestionId);
+            if (!question) return;
+            
+            // Lấy dữ liệu từ form
+            const content = document.getElementById('edit-question-content-input').value;
+            const answerA = document.getElementById('edit-answer-a').value;
+            const answerB = document.getElementById('edit-answer-b').value;
+            const answerC = document.getElementById('edit-answer-c').value;
+            const answerD = document.getElementById('edit-answer-d').value;
+            const correctAnswer = document.getElementById('edit-correct-answer').value;
+            
+            // Cập nhật câu hỏi
+            question.content = content;
+            question.answers = {
+                A: answerA,
+                B: answerB,
+                C: answerC,
+                D: answerD
+            };
+            question.correctAnswer = correctAnswer;
+            
+            // Lưu vào localStorage
+            localStorage.setItem('questions', JSON.stringify(questions));
+            
+            // Đóng modal và refresh danh sách
+            closeEditQuestionModal();
+            displayAdminQuestions();
+            
+            alert('Đã cập nhật câu hỏi thành công!');
+        };
+
+        // Hiển thị danh sách câu hỏi cho admin (function này đã được khai báo ở trên, xóa để tránh trùng lặp)
+        // function displayAdminQuestions(questionsToShow = []) { ... }
 
         // Thêm modal phóng to ảnh cho admin (dùng lại modal cũ nhưng id khác)
         let adminCurrentZoom = 1, adminImgPosX = 0, adminImgPosY = 0, adminIsDragging = false, adminDragStartX = 0, adminDragStartY = 0;
@@ -2863,78 +2868,9 @@ Yêu cầu:
         window.adminZoomOut = function() { adminCurrentZoom = Math.max(adminCurrentZoom - 0.3, 0.5); updateAdminImageTransform(); };
         window.adminResetZoom = function() { adminCurrentZoom = 1; adminImgPosX = 0; adminImgPosY = 0; updateAdminImageTransform(); };
 
-        // Auto Quiz - Upload nhiều ảnh, preview
-        const dropzone = document.getElementById('auto-quiz-dropzone');
-        const fileInput = document.getElementById('auto-quiz-image-input');
-        const previewDiv = document.getElementById('auto-quiz-preview');
-        const startBtn = document.getElementById('auto-quiz-start-btn');
-        var autoQuizImages = [];
 
-        if (dropzone && fileInput && previewDiv && startBtn) {
-            dropzone.addEventListener('click', function() { fileInput.click(); });
-            dropzone.addEventListener('dragover', function(e) { e.preventDefault(); dropzone.classList.add('bg-blue-100'); });
-            dropzone.addEventListener('dragleave', function(e) { e.preventDefault(); dropzone.classList.remove('bg-blue-100'); });
-            dropzone.addEventListener('drop', function(e) {
-                e.preventDefault();
-                dropzone.classList.remove('bg-blue-100');
-                handleFiles(e.dataTransfer.files);
-            });
-            fileInput.addEventListener('change', function(e) { handleFiles(e.target.files); });
-        }
 
-        // Thêm biến lưu API key Google Cloud Vision (hardcode hoặc cho phép nhập ở phần cài đặt nếu muốn)
-        const GOOGLE_VISION_API_KEY = 'AIzaSyAg1ENLEMRu6Z1wKuCbo5ovAeR86a6BoLU';
-
-        // Thêm div preview text OCR sau nút startBtn
-        // Trong phần admin-tab-auto-quiz:
-        // <div id="auto-quiz-ocr-result" class="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-800 hidden"></div>
-
-        // Thêm vào sau nút startBtn trong HTML:
-        // <div id="auto-quiz-ocr-result" class="mt-4 p-4 bg-gray-50 rounded-lg text-sm text-gray-800 hidden"></div>
-
-        // JS xử lý OCR khi nhấn nút
-        if (startBtn) {
-            startBtn.addEventListener('click', async function() {
-                if (autoQuizImages.length === 0) return;
-                startBtn.disabled = true;
-                startBtn.textContent = 'Đang nhận diện OCR...';
-                document.getElementById('auto-quiz-ocr-result').classList.add('hidden');
-                let allText = '';
-                let ocrResults = [];
-                for (let i = 0; i < autoQuizImages.length; i++) {
-                    const img = autoQuizImages[i];
-                    // Gọi Google Cloud Vision API
-                    try {
-                        const res = await fetch(`https://vision.googleapis.com/v1/images:annotate?key=${GOOGLE_VISION_API_KEY}`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                requests: [{
-                                    image: { content: img.data.split(',')[1] },
-                                    features: [{ type: 'TEXT_DETECTION' }]
-                                }]
-                            })
-                        });
-                        const data = await res.json();
-                        const text = data.responses?.[0]?.fullTextAnnotation?.text || '';
-                        ocrResults.push({ name: img.name, text });
-                        allText += `--- Ảnh: ${img.name} ---\n${text}\n\n`;
-                    } catch (e) {
-                        ocrResults.push({ name: img.name, text: '[Lỗi OCR]' });
-                        allText += `--- Ảnh: ${img.name} ---\n[Lỗi OCR]\n\n`;
-                    }
-                }
-                // Hiển thị preview text OCR
-                const ocrDiv = document.getElementById('auto-quiz-ocr-result');
-                ocrDiv.textContent = allText.trim();
-                ocrDiv.classList.remove('hidden');
-                startBtn.disabled = false;
-                startBtn.textContent = 'Bắt đầu OCR & sinh câu hỏi';
-                // Lưu lại text OCR cho bước tiếp theo
-                window.autoQuizOcrText = allText.trim();
-                window.autoQuizOcrResults = ocrResults;
-            });
-        }
+        
 
     </script>
 </body>
